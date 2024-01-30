@@ -94,7 +94,8 @@ const Graph = ({ KGData }) => {
             .data(edges)
             .join("path")
             .attr("stroke", d => color(d.label))
-            .attr("marker-end", d => `url(${new URL(`#arrow-${d.label}`, location)})`);
+            .attr("marker-end", d => `url(${new URL(`#arrow-${d.label}`, location)})`)
+            .attr("id", (d, i) => `edgepath${i}`)
 
         const linkText = svg.append("g")
             .selectAll()
@@ -102,6 +103,9 @@ const Graph = ({ KGData }) => {
             .join("text")
             .attr("dy", -3)
             .attr("text-anchor", "middle")
+            .append("textPath") // append a textPath to the text element
+            .attr("startOffset", "50%") // place the text in the middle of the path
+            .attr("xlink:href", (d, i) => `#edgepath${i}`) // reference the id of the path
             .text(d => labels[d.label - 1].name)
             .attr("fill", d => color(d.label))
             .attr("font-size", "10px")
@@ -132,9 +136,9 @@ const Graph = ({ KGData }) => {
         simulation.on("tick", () => {
             link.attr("d", linkArc)
 
-            linkText
-                .attr("x", d => (d.source.x + d.target.x) / 2)
-                .attr("y", d => (d.source.y + d.target.y) / 2)
+            // linkText
+            //     .attr("x", d => (d.source.x + d.target.x) / 2)
+            //     .attr("y", d => (d.source.y + d.target.y) / 2)
 
             node.attr("transform", d => `translate(${d.x},${d.y})`);
         })
