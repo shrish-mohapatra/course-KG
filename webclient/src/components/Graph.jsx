@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react'
 import * as d3 from "d3"
 
 function linkArc(d) {
+    return `M${d.source.x},${d.source.y}L${d.target.x},${d.target.y}`
     const r = Math.hypot(d.target.x - d.source.x, d.target.y - d.source.y);
     return `
       M${d.source.x},${d.source.y}
@@ -61,7 +62,7 @@ const Graph = ({ KGData }) => {
         const color = d3.scaleOrdinal(labels, d3.schemeCategory10);
 
         const simulation = d3.forceSimulation(nodes)
-            .force("link", d3.forceLink(edges).id(d => d.id).distance(100))
+            .force("link", d3.forceLink(edges).id(d => d.id).distance(200))
             .force("charge", d3.forceManyBody().strength(-400))
             .force("x", d3.forceX())
             .force("y", d3.forceY());
@@ -135,11 +136,6 @@ const Graph = ({ KGData }) => {
 
         simulation.on("tick", () => {
             link.attr("d", linkArc)
-
-            // linkText
-            //     .attr("x", d => (d.source.x + d.target.x) / 2)
-            //     .attr("y", d => (d.source.y + d.target.y) / 2)
-
             node.attr("transform", d => `translate(${d.x},${d.y})`);
         })
 
