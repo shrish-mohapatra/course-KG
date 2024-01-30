@@ -1,6 +1,14 @@
 import React, { useEffect, useRef } from 'react'
 import * as d3 from "d3"
 
+function linkArc(d) {
+    const r = Math.hypot(d.target.x - d.source.x, d.target.y - d.source.y);
+    return `
+      M${d.source.x},${d.source.y}
+      A${r},${r} 0 0,1 ${d.target.x},${d.target.y}
+    `;
+}
+
 function drag(simulation) {
     function dragstarted(event, d) {
         if (!event.active) simulation.alphaTarget(0.3).restart();
@@ -47,40 +55,56 @@ const Graph = ({ KGData }) => {
         // simulation will modify them
         const edges = KGData.edges.map(d => ({ ...d }));
         const nodes = KGData.nodes.map(d => ({ ...d }));
-        console.log({ edges, nodes })
+        const labels = KGData.labels.map(d => ({ ...d }));
+        console.log({ edges, nodes, labels })
 
-        // Create simulation with forces
+        const color = d3.scaleOrdinal(labels, d3.schemeCategory10);
+
         const simulation = d3.forceSimulation(nodes)
-            .force("link", d3.forceLink(edges).id(d => d.id))
+            .force("link", d3.forceLink(edges).id(d => d.id).distance(100))
             .force("charge", d3.forceManyBody().strength(-400))
             .force("x", d3.forceX())
-            .force("y", d3.forceY())
+            .force("y", d3.forceY());
 
-        // Create SVG container
         svg
-            .attr("width", width)
-            .attr("height", height)
             .attr("viewBox", [-width / 2, -height / 2, width, height])
-            .attr("style", "max-width: 100%; height: 100%;")
-            .call(zoom)
-
-        // Create a group element to hold the SVG elements
-        const g = svg.append("g")
-
-        // Add a rectangle to the SVG as a background
-        g.append("rect")
             .attr("width", width)
             .attr("height", height)
-            .style("fill", "none")
-            .style("pointer-events", "all")
+            .attr("style", "max-width: 100%; height: auto; font: 12px sans-serif;");
 
-        // Add lines for each edge
+        // Per-type markers, as they don't inherit styles.
+        svg.append("defs").selectAll("marker")
+            .data(labels)
+            .join("marker")
+            .attr("id", d => `arrow-${d.id}`)
+            .attr("viewBox", "0 -5 10 10")
+            .attr("refX", 15)
+            .attr("refY", -0.5)
+            .attr("markerWidth", 6)
+            .attr("markerHeight", 6)
+            .attr("orient", "auto")
+            .append("path")
+            .attr("fill", d => color(d.id))
+            .attr("d", "M0,-5L10,0L0,5");
+
         const link = svg.append("g")
-            .attr("stroke", "#000")
-            .attr("stroke-opacity", 0.6)
+            .attr("fill", "none")
+            .attr("stroke-width", 1.5)
+            .selectAll("path")
+            .data(edges)
+            .join("path")
+            .attr("stroke", d => color(d.label))
+            .attr("marker-end", d => `url(${new URL(`#arrow-${d.label}`, location)})`);
+
+        const linkText = svg.append("g")
             .selectAll()
             .data(edges)
-            .join("line")
+            .join("text")
+            .attr("dy", -3)
+            .attr("text-anchor", "middle")
+            .text(d => labels[d.label - 1].name)
+            .attr("fill", d => color(d.label))
+            .attr("font-size", "10px")
 
         const node = svg.append("g")
             .attr("fill", "currentColor")
@@ -106,14 +130,13 @@ const Graph = ({ KGData }) => {
             .attr("stroke-width", 3);
 
         simulation.on("tick", () => {
-            link
-                .attr("x1", d => d.source.x)
-                .attr("y1", d => d.source.y)
-                .attr("x2", d => d.target.x)
-                .attr("y2", d => d.target.y)
+            link.attr("d", linkArc)
 
-            node
-                .attr("transform", d => `translate(${d.x},${d.y})`);
+            linkText
+                .attr("x", d => (d.source.x + d.target.x) / 2)
+                .attr("y", d => (d.source.y + d.target.y) / 2)
+
+            node.attr("transform", d => `translate(${d.x},${d.y})`);
         })
 
     }, [KGData])
