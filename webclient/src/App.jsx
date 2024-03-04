@@ -1,4 +1,9 @@
+import { ConfigProvider, theme } from "antd"
 import Graph from "./components/Graph"
+import GroupGraph from "./components/GroupGraph"
+import Overlay from "./components/Overlay"
+import PackCircles from "./components/PackCircles"
+import { GraphProvider } from "./context/GraphContext"
 
 const example1405KG = {
   nodes: [
@@ -44,7 +49,13 @@ const example1405KG = {
 function App() {
   return (
     <>
-      <Graph KGData={example1405KG} />
+      {/* <Graph KGData={example1405KG} /> */}
+      <GraphProvider>
+        <ConfigProvider theme={{ algorithm: theme.darkAlgorithm }}>
+          <Overlay />
+        </ConfigProvider>
+        <GroupGraph />
+      </GraphProvider>
     </>
   )
 }
