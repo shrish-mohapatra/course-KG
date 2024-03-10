@@ -12,3 +12,10 @@ docker compose up -d
 
 docker compose down
 ```
+
+### MongoDB
+```shell
+docker compose exec -t mongodb mongosh -u root -p pw
+> show dbs
+...
+```
