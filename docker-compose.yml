@@ -1,0 +1,19 @@
+version: '3.7'
+
+services:
+  webclient:
+    build: ./webclient
+    command: npm run dev
+    ports:
+      - 3000:3000
+    volumes:
+      - type: bind
+        source: ./webclient
+        target: /app
+    tty: true
+    networks:
+      - kg-net
+
+networks:
+  kg-net:
+    driver: bridge
