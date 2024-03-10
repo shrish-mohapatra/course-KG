@@ -1,0 +1,498 @@
+{
+    "nodes": [
+        {
+            "id": "COMP 2406"
+        },
+        {
+            "id": "Express"
+        },
+        {
+            "id": "Middleware"
+        },
+        {
+            "id": "JSON"
+        },
+        {
+            "id": "data"
+        },
+        {
+            "id": "information"
+        },
+        {
+            "id": "use"
+        },
+        {
+            "id": "applications"
+        },
+        {
+            "id": "content type"
+        },
+        {
+            "id": "body property"
+        },
+        {
+            "id": "code"
+        },
+        {
+            "id": "Postman"
+        },
+        {
+            "id": "browser"
+        },
+        {
+            "id": "user"
+        },
+        {
+            "id": "client"
+        },
+        {
+            "id": "get request"
+        },
+        {
+            "id": "localhost"
+        },
+        {
+            "id": "Colin"
+        },
+        {
+            "id": "3000"
+        },
+        {
+            "id": "header section"
+        },
+        {
+            "id": "body"
+        },
+        {
+            "id": "RawData"
+        },
+        {
+            "id": "name"
+        },
+        {
+            "id": "position"
+        },
+        {
+            "id": "Instructor"
+        },
+        {
+            "id": "object"
+        },
+        {
+            "id": "response"
+        },
+        {
+            "id": "server"
+        },
+        {
+            "id": "URL"
+        },
+        {
+            "id": "JavaScript object"
+        },
+        {
+            "id": "JSON parsing middleware"
+        },
+        {
+            "id": "request"
+        },
+        {
+            "id": "Dave"
+        },
+        {
+            "id": "parsing"
+        },
+        {
+            "id": "undefined"
+        },
+        {
+            "id": "JSON data"
+        },
+        {
+            "id": "query parameters"
+        },
+        {
+            "id": "restful design systems"
+        },
+        {
+            "id": "searches"
+        },
+        {
+            "id": "movies"
+        },
+        {
+            "id": "title"
+        },
+        {
+            "id": "actor name"
+        },
+        {
+            "id": "year"
+        },
+        {
+            "id": "query"
+        },
+        {
+            "id": "parameter"
+        },
+        {
+            "id": "objects"
+        },
+        {
+            "id": "complex queries"
+        },
+        {
+            "id": "basic query parameters"
+        },
+        {
+            "id": "entire objects"
+        },
+        {
+            "id": "automatic passing"
+        },
+        {
+            "id": "structure"
+        },
+        {
+            "id": "parameters"
+        },
+        {
+            "id": "manipulation"
+        },
+        {
+            "id": "string processing"
+        },
+        {
+            "id": "arrays"
+        },
+        {
+            "id": "EXPRESS"
+        },
+        {
+            "id": "Objects"
+        },
+        {
+            "id": "Query Parameters"
+        },
+        {
+            "id": "Properties"
+        },
+        {
+            "id": "handling function"
+        },
+        {
+            "id": "response format"
+        },
+        {
+            "id": "accepts method"
+        },
+        {
+            "id": "content"
+        },
+        {
+            "id": "accept header"
+        },
+        {
+            "id": "content negotiation"
+        },
+        {
+            "id": "data types"
+        },
+        {
+            "id": "system"
+        },
+        {
+            "id": "documentation"
+        }
+    ],
+    "links": [
+        {
+            "source": "Express",
+            "target": "Middleware"
+        },
+        {
+            "source": "Middleware",
+            "target": "JSON"
+        },
+        {
+            "source": "Express",
+            "target": "data"
+        },
+        {
+            "source": "information",
+            "target": "use"
+        },
+        {
+            "source": "information",
+            "target": "content type"
+        },
+        {
+            "source": "body property",
+            "target": "use"
+        },
+        {
+            "source": "code",
+            "target": "data"
+        },
+        {
+            "source": "Express",
+            "target": "Postman"
+        },
+        {
+            "source": "Express",
+            "target": "browser"
+        },
+        {
+            "source": "user",
+            "target": "browser"
+        },
+        {
+            "source": "client",
+            "target": "user"
+        },
+        {
+            "source": "Postman",
+            "target": "get request"
+        },
+        {
+            "source": "get request",
+            "target": "localhost"
+        },
+        {
+            "source": "localhost",
+            "target": "Colin"
+        },
+        {
+            "source": "Colin",
+            "target": "3000"
+        },
+        {
+            "source": "get request",
+            "target": "header section"
+        },
+        {
+            "source": "header section",
+            "target": "content type"
+        },
+        {
+            "source": "content type",
+            "target": "applications"
+        },
+        {
+            "source": "applications",
+            "target": "JSON"
+        },
+        {
+            "source": "header section",
+            "target": "body"
+        },
+        {
+            "source": "body",
+            "target": "RawData"
+        },
+        {
+            "source": "RawData",
+            "target": "name"
+        },
+        {
+            "source": "RawData",
+            "target": "position"
+        },
+        {
+            "source": "position",
+            "target": "Instructor"
+        },
+        {
+            "source": "object",
+            "target": "data"
+        },
+        {
+            "source": "Express",
+            "target": "response"
+        },
+        {
+            "source": "server",
+            "target": "code"
+        },
+        {
+            "source": "JSON",
+            "target": "response"
+        },
+        {
+            "source": "get request",
+            "target": "URL"
+        },
+        {
+            "source": "JavaScript object",
+            "target": "JSON parsing middleware"
+        },
+        {
+            "source": "request",
+            "target": "JavaScript object"
+        },
+        {
+            "source": "JavaScript object",
+            "target": "object"
+        },
+        {
+            "source": "object",
+            "target": "name"
+        },
+        {
+            "source": "name",
+            "target": "Dave"
+        },
+        {
+            "source": "JavaScript object",
+            "target": "parsing"
+        },
+        {
+            "source": "content type",
+            "target": "JSON data"
+        },
+        {
+            "source": "JSON data",
+            "target": "body"
+        },
+        {
+            "source": "body",
+            "target": "undefined"
+        },
+        {
+            "source": "Express",
+            "target": "query parameters"
+        },
+        {
+            "source": "query parameters",
+            "target": "restful design systems"
+        },
+        {
+            "source": "restful design systems",
+            "target": "searches"
+        },
+        {
+            "source": "searches",
+            "target": "movies"
+        },
+        {
+            "source": "movies",
+            "target": "title"
+        },
+        {
+            "source": "movies",
+            "target": "actor name"
+        },
+        {
+            "source": "movies",
+            "target": "year"
+        },
+        {
+            "source": "Express",
+            "target": "query"
+        },
+        {
+            "source": "query",
+            "target": "object"
+        },
+        {
+            "source": "Express",
+            "target": "parameter"
+        },
+        {
+            "source": "query parameters",
+            "target": "objects"
+        },
+        {
+            "source": "query parameters",
+            "target": "complex queries"
+        },
+        {
+            "source": "complex queries",
+            "target": "basic query parameters"
+        },
+        {
+            "source": "complex queries",
+            "target": "entire objects"
+        },
+        {
+            "source": "entire objects",
+            "target": "automatic passing"
+        },
+        {
+            "source": "information",
+            "target": "objects"
+        },
+        {
+            "source": "information",
+            "target": "automatic passing"
+        },
+        {
+            "source": "query parameters",
+            "target": "structure"
+        },
+        {
+            "source": "structure",
+            "target": "parameters"
+        },
+        {
+            "source": "Express",
+            "target": "manipulation"
+        },
+        {
+            "source": "Express",
+            "target": "string processing"
+        },
+        {
+            "source": "Express",
+            "target": "arrays"
+        },
+        {
+            "source": "EXPRESS",
+            "target": "Objects"
+        },
+        {
+            "source": "Objects",
+            "target": "Query Parameters"
+        },
+        {
+            "source": "Query Parameters",
+            "target": "Properties"
+        },
+        {
+            "source": "Express",
+            "target": "handling function"
+        },
+        {
+            "source": "response format",
+            "target": "request"
+        },
+        {
+            "source": "request",
+            "target": "accepts method"
+        },
+        {
+            "source": "accepts method",
+            "target": "accept header"
+        },
+        {
+            "source": "accept header",
+            "target": "content negotiation"
+        },
+        {
+            "source": "content negotiation",
+            "target": "client"
+        },
+        {
+            "source": "client",
+            "target": "data types"
+        },
+        {
+            "source": "content negotiation",
+            "target": "system"
+        },
+        {
+            "source": "accepts method",
+            "target": "documentation"
+        }
+    ]
+}

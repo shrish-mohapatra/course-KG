@@ -1,0 +1,61 @@
+{
+    "nodes": [
+        {
+            "id": "COMP 2406"
+        },
+        {
+            "id": "Express-P2"
+        },
+        {
+            "id": "middleware"
+        },
+        {
+            "id": "JSON"
+        },
+        {
+            "id": "form data"
+        },
+        {
+            "id": "HTML"
+        },
+        {
+            "id": "HTTP request"
+        },
+        {
+            "id": "request format"
+        },
+        {
+            "id": "information retrieval"
+        }
+    ],
+    "links": [
+        {
+            "source": "Express-P2",
+            "target": "middleware"
+        },
+        {
+            "source": "Express-P2",
+            "target": "JSON"
+        },
+        {
+            "source": "Express-P2",
+            "target": "form data"
+        },
+        {
+            "source": "Express-P2",
+            "target": "HTML"
+        },
+        {
+            "source": "Express-P2",
+            "target": "HTTP request"
+        },
+        {
+            "source": "Express-P2",
+            "target": "request format"
+        },
+        {
+            "source": "information retrieval",
+            "target": "Express-P2"
+        }
+    ]
+}

@@ -1,13 +1,19 @@
 import React, { useContext, useState } from 'react'
-import { Input, Button, Drawer } from 'antd'
+import { Input, Button, Drawer, Form } from 'antd'
 import { GraphContext } from '../context/GraphContext'
 
 const Overlay = () => {
-    const { editMode, setEditMode, addNode, waitForLink } = useContext(GraphContext)
+    const {
+        graphData,
+        editMode,
+        setEditMode,
+        addNode,
+        waitForLink,
+        selectedNode,
+        setSelectedNode,
+    } = useContext(GraphContext)
 
-    const [open, setOpen] = useState(false)
-    const showDrawer = () => setOpen(true)
-    const onClose = () => setOpen(false)
+    const onClose = () => setSelectedNode(null)
 
     const [nodeName, setNodeName] = useState()
 
@@ -19,7 +25,7 @@ const Overlay = () => {
     const renderEditControls = () => {
         if (editMode) return (
             <div>
-                <div style={{display: "flex"}}>
+                <div style={{ display: "flex" }}>
                     <Input
                         size='small'
                         placeholder='Node name'
@@ -37,6 +43,21 @@ const Overlay = () => {
         )
     }
 
+    const handleExport = () => {
+        const simplifiedData = {...graphData}
+        simplifiedData.nodes = simplifiedData.nodes.map(node => ({
+            id: node.id,
+            group: node.group,
+            value: node.value
+        }))
+        simplifiedData.links = simplifiedData.links.map(link => ({
+            source: link.source.id,
+            target: link.target.id,
+        }))
+        const textToCopy = JSON.stringify(simplifiedData)
+        navigator.clipboard.writeText(textToCopy)
+    }
+
     return (
         <>
             <div style={{
@@ -46,6 +67,14 @@ const Overlay = () => {
                 zIndex: 10
             }}>
                 <p>course-KG</p>
+            </div>
+            <div style={{
+                position: "absolute",
+                left: 10,
+                bottom: 10,
+                zIndex: 10
+            }}>
+                <Button onClick={handleExport}>export</Button>
             </div>
             <div style={{
                 position: "absolute",
@@ -61,12 +90,24 @@ const Overlay = () => {
             </div>
 
             <Drawer
-                title="Control Panel"
+                title="Node details"
                 onClose={onClose}
-                open={open}
+                open={selectedNode != null}
                 mask={false}
             >
-                <p>content</p>
+                {
+                    selectedNode &&
+                    <>
+                        <Form layout="vertical">
+                            <Form.Item label="Name">
+                                <Input value={selectedNode.id} />
+                            </Form.Item>
+                            <Form.Item label="Notes">
+                                <Input.TextArea placeholder='Details about the concept' />
+                            </Form.Item>
+                        </Form>
+                    </>
+                }
             </Drawer>
         </>
     )

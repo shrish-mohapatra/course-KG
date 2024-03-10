@@ -1,15 +1,18 @@
-import React, { useContext, useState } from 'react'
+import React, { useContext, useEffect, useRef, useState } from 'react'
 import ForceGraph3D from 'react-force-graph-3d'
 import ForceGraph2D from 'react-force-graph-2d'
 import SpriteText from 'three-spritetext'
 import { GraphContext } from '../context/GraphContext'
+import * as d3 from 'd3'
 
 const GroupGraph = () => {
-  const { graphData, editMode, addLink, removeLink, pendingLink, setPendingLink } = useContext(GraphContext)
+  const { dagMode, graphData, editMode, addLink, removeLink, pendingLink, setPendingLink, setSelectedNode } = useContext(GraphContext)
   const [linkQueue, setLinkQueue] = useState([])
 
   const handleClick = (node) => {
-    if (!editMode) return
+    if (!editMode) {
+      setSelectedNode(node)
+    }
     if (!pendingLink) return
     if (linkQueue.length == 0) {
       setLinkQueue([node.id])
@@ -26,8 +29,18 @@ const GroupGraph = () => {
     removeLink(link)
   }
 
+  const graphRef = useRef()
+
+  useEffect(() => {
+    if(graphRef.current) {
+      const fg = graphRef.current; 
+      fg.d3Force('charge').distanceMax(100)
+    }
+  }, [graphRef])
+
   return (
     <ForceGraph2D
+      ref={graphRef}
       graphData={graphData}
       nodeAutoColorBy="group"
 
@@ -73,7 +86,7 @@ const GroupGraph = () => {
       onNodeClick={handleClick}
       onLinkRightClick={handleRightClick}
 
-      dagMode={editMode ? "" : "td"}
+      dagMode={editMode ? '' : 'td'}
       dagLevelDistance={20}
     />
   )
