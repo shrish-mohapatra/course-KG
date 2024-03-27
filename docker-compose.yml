@@ -1,0 +1,26 @@
+version: '3.7'
+
+services:
+  webclient:
+    build: ./webclient
+    command: npm run dev
+    ports:
+      - 3000:3000
+    volumes:
+      - type: bind
+        source: ./webclient
+        target: /app
+    tty: true
+    networks:
+      - kg-net
+  
+  mongodb:
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: pw
+
+networks:
+  kg-net:
+    driver: bridge
