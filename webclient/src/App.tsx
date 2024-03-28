@@ -1,9 +1,14 @@
+import { ThemeProvider } from "./components/theme-provider"
+import Graph from "./features/graph"
+import Overlay from "./features/overlay"
+
 function App() {
 
   return (
-    <>
-      <p>course-KG</p>
-    </>
+    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+      <Graph/>
+      <Overlay/>
+    </ThemeProvider>
   )
 }
 
