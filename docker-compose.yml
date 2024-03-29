@@ -296,6 +296,22 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: pw
+  
+  ollama:
+    image: ollama/ollama
+    volumes:
+      - ollama-volume:/root/.ollama
+    tty: true
+    ports:
+      - 11434:11434
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
 
 volumes:
   postgres-db-volume:
+  ollama-volume:
