@@ -7,6 +7,25 @@ class Task(abc.ABC):
 
     @abc.abstractmethod
     def process(self, data):
+        """
+        Perform operation on data provided from previous task.
+        Return value will be used as the input for the next task.
+        """
+        pass
+
+
+class MultiTask(Task):
+    """Split the task execution across an array of input data"""
+
+    def process(self, data):
+        return [
+            self.process_single(single_data)
+            for single_data in data
+        ]
+
+    @abc.abstractmethod
+    def process_single(self, single_data):
+        """Perform operation on single data element within main task input_data"""
         pass
 
 

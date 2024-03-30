@@ -13,6 +13,18 @@ Run the following at the end to make sure everything is setup correctly:
 docker run --rm --runtime=nvidia --gpus all ubuntu nvidia-smi
 ```
 
+### Load Transcripts
+Using `docker`'s volume mount feature we can provide containers access to folders containing course materials.
+Suppose course materials are stored here: `/home/student/course-materials`
+
+Modify the `docker-compose.yml` `x-airflow-common>volumes` as follows:
+```yml
+volumes:
+    - ./airflow/dags:/opt/airflow/dags:rw
+    - ...
+    - /home/student/course-materials:/opt/course-materials
+```
+
 ## Development
 See `docs/system-design.excalidraw` for information regarding the various services.
 

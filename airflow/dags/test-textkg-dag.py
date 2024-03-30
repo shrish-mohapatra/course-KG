@@ -4,17 +4,19 @@ sys.path.append('/opt/libraries')
 from text2kg.core import Pipeline
 from text2kg.airflow import AirflowEngine
 from text2kg.task import (
-    LoadCSVTranscripts,
     CreateKnowledgeGraph,
+    ExtractTranscripts,
+    LoadFolder,
     SaveToDatabase,
 )
 
 
 pipeline = Pipeline(
     tasks=[
-        LoadCSVTranscripts(),
-        CreateKnowledgeGraph(),
-        SaveToDatabase(),
+        LoadFolder(),
+        ExtractTranscripts(),
+        # CreateKnowledgeGraph(),
+        # SaveToDatabase(),
     ],
     pipeline_engine=AirflowEngine(
         dag_name="test-textkg",
