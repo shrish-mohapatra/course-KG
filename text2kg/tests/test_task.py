@@ -1,7 +1,20 @@
+import pytest
+
 from text2kg.task import (
     LoadFolder,
-    ExtractTranscripts
+    ExtractTranscripts,
+    SummarizeTranscripts,
+    SplitTranscripts,
 )
+
+
+@pytest.fixture
+def real_transcript():
+    real_transcript_text = ""
+    with open("./text2kg/tests/real_transcript.txt", "r") as f:
+        real_transcript_text = f.read()
+
+    return real_transcript_text
 
 
 def test_load_folder():
@@ -22,3 +35,52 @@ def test_extract_transcript():
     ]
     result = task.process(input_data)
     assert len(result) != 0
+
+
+def test_summarize():
+    task = SummarizeTranscripts(host="localhost:11434")
+    input_data = [
+        {
+            'file_path': 'comp2406-express.mp4.csv',
+            'transcript': 'Good morning everyone. Today, we will be discussing Express.js, a popular web application framework for Node.js. Express.js is known for its simplicity and flexibility, making it a favorite among developers for building web applications and APIs. Express.js is built on top of Node.js, which means it leverages the power of JavaScript and allows developers to easily create server-side applications. It provides a robust set of features that help in creating web servers, handling HTTP requests, and managing routes. One of the key features of Express.js is its middleware system. Middleware functions are functions that have access to the request object, the response object, and the next middleware function in the application’s request-response cycle. This allows developers to perform various tasks such as authentication, logging, and error handling before sending a response to the client. Another important aspect of Express.js is routing. With Express.js, developers can define routes for different HTTP methods such as GET, POST, PUT, and DELETE. This makes it easy to handle different types of requests and perform different actions based on the request method. Express.js also comes with a variety of built-in middleware and additional modules that can be easily integrated into an application. Some of these modules include body-parser for parsing incoming request bodies, cookie-parser for parsing cookie headers, and multer for handling file uploads. In addition to these features, Express.js also provides a templating engine called Pug (formerly known as Jade) that allows developers to generate HTML dynamically. This makes it easy to create dynamic web pages and render data from the server to the client. Overall, Express.js is a powerful and flexible framework for building web applications and APIs. Its simplicity and ease of use make it a popular choice among developers. Whether you are a beginner or an experienced developer, Express.js can help you build robust and scalable web applications. That concludes our lecture on Express.js. Thank you for joining us today. If you have any questions, feel free to ask.',
+        },
+        {
+            'file_path': 'comp4601-recommender-systems.mp4.csv',
+            'transcript': 'Good morning, everyone. Today, we will be discussing recommender systems. Recommender systems have become an essential part of our everyday lives, helping us discover new products, services, and content that we may not have otherwise come across. But what exactly are recommender systems? Recommender systems are algorithms that analyze user data and make personalized recommendations based on that information. These systems are used in a variety of industries, including e-commerce, streaming services, social media platforms, and more. They aim to provide users with relevant and personalized suggestions to improve their overall experience. There are several types of recommender systems, including collaborative filtering, content-based filtering, and hybrid systems. Collaborative filtering analyzes user behavior and preferences to recommend items that similar users have enjoyed. Content-based filtering, on the other hand, recommends items based on their attributes and features. Hybrid systems combine both collaborative and content-based filtering to provide more accurate and diverse recommendations. Recommender systems use various algorithms to make predictions and recommendations. Some common algorithms include matrix factorization, nearest neighbor, and deep learning models. These algorithms analyze user data, such as browsing history, ratings, and interactions, to generate personalized recommendations. There are several challenges associated with recommender systems, including data sparsity, cold start problems, and scalability issues. Data sparsity occurs when there is a lack of user data, making it difficult to generate accurate recommendations. Cold start problems occur when new items or users have limited data available, making it challenging to provide relevant suggestions. Scalability issues arise when recommender systems struggle to handle large amounts of data efficiently. Despite these challenges, recommender systems have proven to be highly effective in improving user engagement, increasing sales, and enhancing the overall user experience. Companies such as Amazon, Netflix, and Spotify rely on recommender systems to drive their businesses and provide personalized recommendations to their users. In conclusion, recommender systems play a crucial role in helping users discover new content and products, ultimately enhancing their overall experience. By analyzing user data and utilizing various algorithms, recommender systems can provide personalized and relevant recommendations to users, leading to increased user satisfaction and engagement. Thank you for listening.',
+        }
+    ]
+    result = task.process(input_data)
+    print(result)
+    assert len(result) != 0
+
+
+def test_split_transcript(real_transcript):
+    task = SplitTranscripts()
+    input_data = [
+        {
+            'file_path': 'comp2406-express.mp4.csv',
+            'transcript': 'Good morning everyone. Today, we will be discussing Express.js, a popular web application framework for Node.js. Express.js is known for its simplicity and flexibility, making it a favorite among developers for building web applications and APIs. Express.js is built on top of Node.js, which means it leverages the power of JavaScript and allows developers to easily create server-side applications. It provides a robust set of features that help in creating web servers, handling HTTP requests, and managing routes. One of the key features of Express.js is its middleware system. Middleware functions are functions that have access to the request object, the response object, and the next middleware function in the application’s request-response cycle. This allows developers to perform various tasks such as authentication, logging, and error handling before sending a response to the client. Another important aspect of Express.js is routing. With Express.js, developers can define routes for different HTTP methods such as GET, POST, PUT, and DELETE. This makes it easy to handle different types of requests and perform different actions based on the request method. Express.js also comes with a variety of built-in middleware and additional modules that can be easily integrated into an application. Some of these modules include body-parser for parsing incoming request bodies, cookie-parser for parsing cookie headers, and multer for handling file uploads. In addition to these features, Express.js also provides a templating engine called Pug (formerly known as Jade) that allows developers to generate HTML dynamically. This makes it easy to create dynamic web pages and render data from the server to the client. Overall, Express.js is a powerful and flexible framework for building web applications and APIs. Its simplicity and ease of use make it a popular choice among developers. Whether you are a beginner or an experienced developer, Express.js can help you build robust and scalable web applications. That concludes our lecture on Express.js. Thank you for joining us today. If you have any questions, feel free to ask.',
+        },
+        {
+            'file_path': 'comp4601-Rec systems.mp4.csv',
+            'transcript': real_transcript,
+        },
+    ]
+    result = task.process(input_data)
+    print(result)
+    assert len(result) != 0
+
+
+def test_summarize2(real_transcript):
+    t1 = SplitTranscripts(max_tokens=2000)
+    t2 = SummarizeTranscripts(host="localhost:11434")
+    input_data = [
+        {
+            'file_path': 'comp2406-express.mp4.csv',
+            'transcript': real_transcript,
+        }
+    ]
+    split_transcripts = t1.process(input_data)
+    summaries = t2.process(split_transcripts)
+    print(summaries)
+    assert len(summaries) != 0

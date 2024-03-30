@@ -1,22 +1,22 @@
 import sys
 sys.path.append('/opt/libraries')
 
-from text2kg.core import Pipeline
-from text2kg.airflow import AirflowEngine
 from text2kg.task import (
-    CreateKnowledgeGraph,
     ExtractTranscripts,
     LoadFolder,
-    SaveToDatabase,
+    SplitTranscripts,
+    SummarizeTranscripts,
 )
+from text2kg.airflow import AirflowEngine
+from text2kg.core import Pipeline
 
 
 pipeline = Pipeline(
     tasks=[
-        LoadFolder(),
+        LoadFolder(folder_path="/opt/course-materials/COMP4601-F23/Lecture Captions"),
         ExtractTranscripts(),
-        # CreateKnowledgeGraph(),
-        # SaveToDatabase(),
+        SplitTranscripts(),
+        SummarizeTranscripts(),
     ],
     pipeline_engine=AirflowEngine(
         dag_name="test-textkg",

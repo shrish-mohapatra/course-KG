@@ -1,4 +1,6 @@
 import abc
+import logging
+import ollama
 from typing import List
 
 
@@ -18,15 +20,45 @@ class MultiTask(Task):
     """Split the task execution across an array of input data"""
 
     def process(self, data):
-        return [
-            self.process_single(single_data)
-            for single_data in data
-        ]
+        result = []
+
+        for single_data in data:
+            single_result = self.process_single(single_data)
+            if isinstance(single_result, list):
+                result.extend(single_result)
+            else:
+                result.append(single_result)
+
+        return result
 
     @abc.abstractmethod
     def process_single(self, single_data):
         """Perform operation on single data element within main task input_data"""
         pass
+
+
+class LLMTask(Task):
+    """Task which invokes an LLM to handle the processing of data"""
+
+    DEFAULT_LLM_MODEL = "gemma:7b"
+    DEFAULT_OLLAMA_HOST = "ollama"
+
+    def __init__(
+        self,
+        prompt: str,
+        model=DEFAULT_LLM_MODEL,
+        host=DEFAULT_OLLAMA_HOST,
+    ):
+        self.prompt = prompt
+        self.model = model
+        self.host = host
+
+        self._connect()
+
+    def _connect(self):
+        """Connect to LLM client"""
+        self._llm = ollama.Client(host=self.host)
+        logging.info(f"Connected to ollama client host={self.host}")
 
 
 class PipelineEngine(abc.ABC):
