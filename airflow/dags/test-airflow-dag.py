@@ -1,7 +1,10 @@
-from airflow import DAG
-from airflow.decorators import task
-from airflow.utils.dates import days_ago
+import logging
+
 from datetime import timedelta
+from airflow.utils.dates import days_ago
+from airflow.decorators import task
+from airflow import DAG
+
 
 default_args = {
     'owner': 'shrish',
@@ -22,17 +25,17 @@ with DAG(
 
     @task
     def extract_transcripts():
-        print("extracting transcripts")
+        logging.info("extracting transcripts")
         return ["text1", "text2", "text3"]
 
     @task
     def transform_to_graph(transcripts):
-        print("creating graph from", transcripts)
-        return {"nodes": [1,2,3], "edges": []}
+        logging.info(f"creating graph from {transcripts}")
+        return {"nodes": [1, 2, 3], "edges": []}
 
     @task
     def load_to_database(graph):
-        print("saving to graph DB:", graph)
+        logging.info(f"saving to graph DB: {graph}")
 
     # Setting up dependencies
     transcripts = extract_transcripts()

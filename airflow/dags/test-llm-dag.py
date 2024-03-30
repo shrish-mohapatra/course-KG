@@ -5,6 +5,7 @@ from airflow.decorators import task
 
 from datetime import timedelta
 
+
 LLM_MODEL = "gemma:7b"
 
 default_args = {
@@ -35,7 +36,7 @@ with DAG(
     @task
     def summarize_transcripts(transcripts):
         print("summarizing transcripts for", transcripts)
-        
+
         summaries = {}
         for transcript in transcripts:
             response = llm.chat(model=LLM_MODEL, messages=[
@@ -46,7 +47,7 @@ with DAG(
             ])
             summaries[transcript] = response["message"]["content"]
             print(f'Generated summary for {transcript}: {summaries[transcript]}')
-        
+
         return summaries
 
     @task
