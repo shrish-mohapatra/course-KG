@@ -21,8 +21,11 @@ class MultiTask(Task):
 
     def process(self, data):
         result = []
+        num_sub_tasks = len(data)
 
-        for single_data in data:
+        for i in range(num_sub_tasks):
+            logging.info(f"Processing subtask {i+1}/{num_sub_tasks}")
+            single_data = data[i]
             single_result = self.process_single(single_data)
             if isinstance(single_result, list):
                 result.extend(single_result)

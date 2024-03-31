@@ -96,17 +96,19 @@ class SplitTranscripts(MultiTask):
         logging.info(f"Original transcript sentences={len(total_sentences)}")
 
         result = []
-        cur_transcript = ""
+        cur_transcript = []
 
         for sentence in total_sentences:
-            if len(cur_transcript) + len(sentence) > self.max_tokens:
+            sentence_words = sentence.split(" ")
+            if len(cur_transcript) + len(sentence_words) > self.max_tokens:
                 result.append({
                     "file_path": file_path,
-                    "transcript": cur_transcript,
+                    "transcript": " ".join(cur_transcript),
                 })
-                cur_transcript = ""
+                logging.info(f"Split into {len(cur_transcript)} tokens")
+                cur_transcript = []
 
-            cur_transcript += sentence
+            cur_transcript.extend(sentence_words)
 
         logging.info(f'Split into {len(result)} transcripts')
         logging.info(f'Sub transcripts={result}')
@@ -136,10 +138,12 @@ class SummarizeTranscripts(MultiTask, LLMTask):
 
         prompt = self.prompt.format(transcript=transcript).strip()
         logging.info(f"Created LLM prompt={prompt}")
+        logging.info(f"LLM prompt length={len(prompt)}")
 
         response = self._llm.generate(self.model, prompt)
         llm_response = response["response"]
         logging.info(f"Received LLM response={llm_response}")
+        logging.info(f"LLM response length={len(llm_response)}")
 
         result = {
             "file_path": file_path,
@@ -148,12 +152,92 @@ class SummarizeTranscripts(MultiTask, LLMTask):
         return result
 
 
-class CreateKnowledgeGraph(Task):
-    """Create knowledge graph from transcripts"""
+class SelectFew(Task):
+    """Select few outputs for multi-output task. Useful for testing :D"""
+
+    def __init__(self, start_index=0, count=1):
+        """
+        Args:
+        - start_index: index to start selection from multi-output
+        - count: number of outputs to select
+        """
+        self.start_index = start_index
+        self.count = count
 
     def process(self, data):
-        logging.info(f"Creating KG from transcripts: {data}")
-        return {"nodes": [1, 2, 3], "edges": []}
+        logging.info(f"Selecting one data from={data}")
+        result = data[self.start_index:self.start_index + self.count]
+        logging.info(f"Selected result={result}")
+        return result
+
+
+class GroupByFile(Task):
+    """
+    Group array-like data by file
+    - input: [{file_path, summary}]
+    - output: [[{file_path1, summary}], [{file_path2, summary}]]
+    """
+
+    def process(self, data):
+        logging.info(f"Creating buckets for data={data}")
+        buckets = {}
+
+        for single_data in data:
+            file_path = single_data["file_path"]
+            if file_path not in buckets:
+                buckets[file_path] = []
+
+            buckets[file_path].append(single_data)
+
+        result = list(buckets.values())
+        logging.info(f"Created {len(result)} buckets")
+        logging.info(f"Buckets={result}")
+        return result
+
+
+class CreateKnowledgeGraphs(MultiTask, LLMTask):
+    """
+    Invoke an LLM to create knowledge graphs based on summaries
+    - single_input: [{file_path, summary}]
+    - single_output: [{file_path, kg, contributors: [str]}]
+    """
+
+    DEFAULT_SYSTEM_PROMPT = """
+    Given the following key concepts extracted from a university lecture transcript, list the nodes and edges in JSON format that can form a knowledge graph based on the key topics.
+    Only create nodes based on large concepts. Only create an edge if the source concept is a prequisite to understand the target concept.
+    """
+
+    DEFAULT_FORMAT_PROMPT = """
+    # Output Format Instructions
+    Produce only JSON output and nothing else like so: ```json\n{nodes: [{id: <name of concept>}...], edges: [{source: <id of source concept node>, target: <id of target concept node>}]}\n```
+    # Key Concepts
+    """
+
+    DEFAULT_PROMPT = DEFAULT_SYSTEM_PROMPT + DEFAULT_FORMAT_PROMPT
+
+    def __init__(self, prompt=DEFAULT_PROMPT, *args, **kwargs):
+        super().__init__(prompt, *args, **kwargs)
+
+    def process_single(self, single_data):
+        file_path = single_data[0]["file_path"]
+
+        logging.info(f"Creating KG on {len(single_data)} summaries")
+        joint_summaries = list(map(lambda x: x["summary"], single_data))
+        joint_summaries_text = "\n".join(joint_summaries)
+
+        prompt = self.prompt.strip() + joint_summaries_text
+        logging.info(f"Creating prompt of length={len(prompt)}")
+        logging.info(f"Creating prompt={prompt}")
+
+        response = self._llm.generate(self.model, prompt)
+        llm_response = response["response"]
+        logging.info(f"Received LLM response={llm_response}")
+
+        result = {
+            "file_path": file_path,
+            "kg": llm_response
+        }
+        return result
 
 
 class SaveToDatabase(Task):

@@ -2,7 +2,9 @@ import sys
 sys.path.append('/opt/libraries')
 
 from text2kg.task import (
+    CreateKnowledgeGraphs,
     ExtractTranscripts,
+    GroupByFile,
     LoadFolder,
     SplitTranscripts,
     SummarizeTranscripts,
@@ -15,8 +17,10 @@ pipeline = Pipeline(
     tasks=[
         LoadFolder(folder_path="/opt/course-materials/COMP4601-F23/Lecture Captions"),
         ExtractTranscripts(),
-        SplitTranscripts(),
+        SplitTranscripts(max_tokens=1000),
         SummarizeTranscripts(),
+        GroupByFile(),
+        CreateKnowledgeGraphs(),
     ],
     pipeline_engine=AirflowEngine(
         dag_name="test-textkg",

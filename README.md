@@ -69,10 +69,11 @@ To run text-to-KG pipelines we can use Airflow's DAG (Directed Acyclic Graphs) t
     1. Credentials `user:airflow pw:airflow`
 5. Find the DAG you're interested in and click the play button to trigger it.
 6. To check task logs:
-    1. Click on task within the *Recent Tasks*
-    2. Click on task instance *Task Id*
-    3. Go to *XCom* to see output from task.
-    4. Go to *Log* to see full logs.
+    1. Click on the DAG name within the *DAGs* table.
+    2. Click on the *Grid* view.
+    3. Click on the square next to a specific task in the table.
+    4. Go to *Logs* to see full logs.
+    5. Go to *Xcom* to see the output produced from this task.
 
 
 ### text2kg Tests
