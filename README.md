@@ -73,3 +73,10 @@ To run text-to-KG pipelines we can use Airflow's DAG (Directed Acyclic Graphs) t
     2. Click on task instance *Task Id*
     3. Go to *XCom* to see output from task.
     4. Go to *Log* to see full logs.
+
+
+### text2kg Tests
+Using `pytest` allows for the creation of unit tests. The following is an example:
+```shell
+python -m pytest --log-level=INFO -k summarize -rP
+```

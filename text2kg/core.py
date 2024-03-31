@@ -79,4 +79,4 @@ class Pipeline():
 
     def run(self):
         """Run pipeline of tasks"""
-        self.pipeline_engine.execute(self.tasks)
+        return self.pipeline_engine.execute(self.tasks)
