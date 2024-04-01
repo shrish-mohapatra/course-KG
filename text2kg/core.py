@@ -22,21 +22,60 @@ class MultiTask(Task):
     def process(self, data):
         result = []
         num_sub_tasks = len(data)
+        num_failures = 0
 
         for i in range(num_sub_tasks):
             logging.info(f"Processing subtask {i+1}/{num_sub_tasks}")
             single_data = data[i]
             single_result = self.process_single(single_data)
+
+            if not single_result:
+                num_failures += 1
+
             if isinstance(single_result, list):
                 result.extend(single_result)
             else:
                 result.append(single_result)
 
+        logging.info(f"Number of failed subtasks={num_failures}")
         return result
 
     @abc.abstractmethod
     def process_single(self, single_data):
         """Perform operation on single data element within main task input_data"""
+        pass
+
+
+class GroupByTask(Task, abc.ABC):
+    """
+    Group array-like data by bucket-key
+    - input: [data1, data2,...]
+    - output: [ [data1, data2], [data3, data4], ...]
+    """
+
+    def process(self, data):
+        logging.info(f"Creating buckets for data={data}")
+        buckets = {}
+
+        for single_data in data:
+            bucket_key = self.get_bucket_key(single_data)
+            if bucket_key not in buckets:
+                buckets[bucket_key] = []
+
+            buckets[bucket_key].append(single_data)
+
+        result = list(buckets.values())
+        logging.info(f"Created {len(result)} buckets")
+        logging.info(f"Buckets={result}")
+        return result
+    
+    @abc.abstractmethod
+    def get_bucket_key(self, single_data):
+        """
+        Operation applied on single_data to be used as the key for creating buckets
+        Args:
+        - single_data: Single element from array-like data passed to task
+        """
         pass
 
 

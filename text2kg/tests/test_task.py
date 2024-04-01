@@ -5,6 +5,8 @@ from text2kg.task import (
     ExtractTranscripts,
     SummarizeTranscripts,
     SplitTranscripts,
+    GroupByFile,
+    GroupByFolder,
 )
 
 
@@ -84,3 +86,33 @@ def test_summarize2(real_transcript):
     summaries = t2.process(split_transcripts)
     print(summaries)
     assert len(summaries) != 0
+
+
+def test_group_by_file():
+    input_data = [
+        {'file_path': '/opt/course/COMP2406/Lecture/lec1.csv', 'summary': 'test'},
+        {'file_path': '/opt/course/COMP2406/Lecture/lec2.csv', 'summary': 'test'},
+        {'file_path': '/opt/course/COMP2406/Lecture/lec2.csv', 'summary': 'test'},
+        {'file_path': '/opt/course/COMP4601/Lecture/lec1.csv', 'summary': 'test'},
+        {'file_path': '/opt/course/COMP4601/Lecture/lec2-crawler.csv', 'summary': 'test'},
+        {'file_path': '/opt/course/COMP1405/Lecture/lec1.csv', 'summary': 'test'},
+    ]
+    t1 = GroupByFile()
+    grouped_files = t1.process(input_data)
+    print(grouped_files)
+    assert len(grouped_files) != 0
+
+
+def test_group_by_folder():
+    input_data = [
+        {'file_path': '/opt/course-materials/COMP2406/Lecture/lec1.csv', 'summary': 'test'},
+        {'file_path': '/opt/course-materials/COMP2406/Lecture/lec2.csv', 'summary': 'test'},
+        {'file_path': '/opt/course-materials/COMP2406/Lecture/lec2.csv', 'summary': 'test'},
+        {'file_path': '/opt/course-materials/COMP4601/Lecture/lec1.csv', 'summary': 'test'},
+        {'file_path': '/opt/course-materials/COMP4601/Lecture/lec2-crawler.csv', 'summary': 'test'},
+        {'file_path': '/opt/course-materials/COMP1405/Lecture/lec1.csv', 'summary': 'test'},
+    ]
+    t1 = GroupByFolder()
+    grouped_files = t1.process(input_data)
+    print(grouped_files)
+    assert len(grouped_files) != 0

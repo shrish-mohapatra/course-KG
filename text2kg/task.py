@@ -1,8 +1,8 @@
-from text2kg.core import Task, MultiTask, LLMTask
+from text2kg.core import Task, MultiTask, LLMTask, GroupByTask
 from typing import List
 
 import logging
-import ollama
+import json
 import os
 import pandas as pd
 
@@ -171,35 +171,49 @@ class SelectFew(Task):
         return result
 
 
-class GroupByFile(Task):
+class GroupByFile(GroupByTask):
     """
     Group array-like data by file
     - input: [{file_path, summary}]
     - output: [[{file_path1, summary}], [{file_path2, summary}]]
     """
 
-    def process(self, data):
-        logging.info(f"Creating buckets for data={data}")
-        buckets = {}
+    def get_bucket_key(self, single_data):
+        return single_data["file_path"]
 
-        for single_data in data:
-            file_path = single_data["file_path"]
-            if file_path not in buckets:
-                buckets[file_path] = []
 
-            buckets[file_path].append(single_data)
+class GroupByFolder(GroupByTask):
+    """
+    Group array-like data by folder
+    - input: [{file_path=folder1/file1, summary}, {file_path=folder1/file2, summary}]
+    - output: [[{file_path=folder1/file1, summary}, {file_path=folder1/file2, summary}], [...]]
+    """
 
-        result = list(buckets.values())
-        logging.info(f"Created {len(result)} buckets")
-        logging.info(f"Buckets={result}")
-        return result
+    def __init__(self, folder_mask='/opt/course-materials') -> None:
+        """
+        Args:
+        - folder_mask: Path to exclude when grouping by folders
+        """
+        super().__init__()
+        self.folder_mask = folder_mask
+
+    def get_bucket_key(self, single_data):
+        file_path = single_data["file_path"]
+        logging.info(f"Creating bucket key for file_path={file_path}")
+
+        masked_file_path = file_path[len(self.folder_mask)+1:]
+        fp_elements = masked_file_path.split('/')
+        bucket_key = fp_elements[0]
+
+        logging.info(f"Using bucket key={bucket_key}")
+        return bucket_key
 
 
 class CreateKnowledgeGraphs(MultiTask, LLMTask):
     """
     Invoke an LLM to create knowledge graphs based on summaries
     - single_input: [{file_path, summary}]
-    - single_output: [{file_path, kg, contributors: [str]}]
+    - single_output: [{file_path, nodes, edges, contributors: [str]}]
     """
 
     DEFAULT_SYSTEM_PROMPT = """
@@ -215,8 +229,14 @@ class CreateKnowledgeGraphs(MultiTask, LLMTask):
 
     DEFAULT_PROMPT = DEFAULT_SYSTEM_PROMPT + DEFAULT_FORMAT_PROMPT
 
-    def __init__(self, prompt=DEFAULT_PROMPT, *args, **kwargs):
+    def __init__(self, prompt=DEFAULT_PROMPT, retries=3, *args, **kwargs):
+        """
+        Args:
+        - prompt: Prompt used to generate knowledge graph
+        - retries: Number of times to re-prompt LLM in case of invalid JSON
+        """
         super().__init__(prompt, *args, **kwargs)
+        self.retries = retries
 
     def process_single(self, single_data):
         file_path = single_data[0]["file_path"]
@@ -229,15 +249,59 @@ class CreateKnowledgeGraphs(MultiTask, LLMTask):
         logging.info(f"Creating prompt of length={len(prompt)}")
         logging.info(f"Creating prompt={prompt}")
 
-        response = self._llm.generate(self.model, prompt)
-        llm_response = response["response"]
-        logging.info(f"Received LLM response={llm_response}")
+        for _ in range(self.retries + 1):
+            response = self._llm.generate(self.model, prompt)
+            llm_response = response["response"]
+            logging.info(f"Received LLM response={llm_response}")
+
+            json_kg = self._santize_kg(llm_response)
+            if json_kg:
+                break
+
+        if not json_kg:
+            logging.error(
+                f"Failed to create JSON KG after {self.retries} retries")
+            return None
 
         result = {
             "file_path": file_path,
-            "kg": llm_response
+            "nodes": json_kg["nodes"],
+            "edges": json_kg["edges"],
         }
         return result
+
+    def _santize_kg(self, raw_kg: str):
+        """
+        Convert LLM response into JSON object
+        Args:
+        - raw_kg: LLM response containing knowledge graph
+        """
+        start_delim = "{"
+        start_index = raw_kg.find(start_delim)
+        end_delim = "}"
+        end_index = raw_kg.rfind(end_delim)
+        json_like_kg = raw_kg[start_index:end_index + len(end_delim)]
+        logging.info(f"KG after string processing={json_like_kg}")
+
+        try:
+            json_kg = json.loads(json_like_kg)
+            logging.info(f"Succesfully parsed as JSON={json_kg}")
+            return json_kg
+        except Exception as e:
+            logging.warning(f"Unable to parse as JSON error={e}")
+            return None
+
+
+class CombineKnowledgeGraphs(MultiTask):
+    """
+    Combine a list of knowledge graphs into one
+    - single_input: [{file_path, nodes, edges}] to combine
+    - single_output: {nodes, edges} combined
+    """
+
+    def process_single(self, single_data):
+        logging.info(single_data)
+        return single_data
 
 
 class SaveToDatabase(Task):
