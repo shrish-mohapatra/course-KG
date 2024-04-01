@@ -209,6 +209,47 @@ class GroupByFolder(GroupByTask):
         return bucket_key
 
 
+class SplitSummaries(Task):
+    """
+    Enforce maximum token limit on buckets
+    - input: [[{file_path1, summary1},{file_path1, summary2}], [{file_path2, summary}]]
+    """
+
+    def __init__(self, max_tokens=1000) -> None:
+        """
+        Args:
+        - max_tokens: Maximum tokens per bucket
+        """
+        super().__init__()
+        self.max_tokens = max_tokens
+
+    def process(self, data):
+        new_buckets = []
+
+        for bucket in data:
+            cur_bucket = []
+            cur_tokens = 0
+
+            for element in bucket:
+                summary = element["summary"]
+                summary_tokens = len(summary.split(" "))
+
+                if cur_tokens + summary_tokens > self.max_tokens:
+                    new_buckets.append(cur_bucket)
+                    cur_bucket = []
+                    cur_tokens = 0
+
+                cur_tokens += summary_tokens
+                cur_bucket.append(element)
+
+            if cur_bucket:
+                new_buckets.append(cur_bucket)
+
+        logging.info(f"Created {len(new_buckets)} buckets")
+        logging.info(f"Created buckets={new_buckets}")
+        return new_buckets
+
+
 class CreateKnowledgeGraphs(MultiTask, LLMTask):
     """
     Invoke an LLM to create knowledge graphs based on summaries
@@ -283,7 +324,6 @@ class CreateKnowledgeGraphs(MultiTask, LLMTask):
         end_delim = "}"
         end_index = raw_kg.rfind(end_delim)
         json_like_kg = raw_kg[start_index:end_index + len(end_delim)]
-        logging.info(f"KG after string processing={json_like_kg}")
 
         try:
             json_kg = json.loads(json_like_kg)

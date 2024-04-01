@@ -7,6 +7,7 @@ from text2kg.task import (
     SplitTranscripts,
     GroupByFile,
     GroupByFolder,
+    SplitSummaries,
 )
 
 
@@ -109,10 +110,48 @@ def test_group_by_folder():
         {'file_path': '/opt/course-materials/COMP2406/Lecture/lec2.csv', 'summary': 'test'},
         {'file_path': '/opt/course-materials/COMP2406/Lecture/lec2.csv', 'summary': 'test'},
         {'file_path': '/opt/course-materials/COMP4601/Lecture/lec1.csv', 'summary': 'test'},
-        {'file_path': '/opt/course-materials/COMP4601/Lecture/lec2-crawler.csv', 'summary': 'test'},
+        {'file_path': '/opt/course-materials/COMP4601/Lecture/lec2-crawler.csv',
+            'summary': 'test'},
         {'file_path': '/opt/course-materials/COMP1405/Lecture/lec1.csv', 'summary': 'test'},
     ]
     t1 = GroupByFolder()
     grouped_files = t1.process(input_data)
     print(grouped_files)
     assert len(grouped_files) != 0
+
+
+def test_group_by_file_overflow():
+    input_data = [
+        {'file_path': 'lec1.csv', 'summary': 'test1'},
+        {'file_path': 'lec1.csv', 'summary': 'test2'},
+        {'file_path': 'lec1.csv', 'summary': 'test3'},
+
+        {'file_path': 'lec2.csv', 'summary': 'test1'},
+        {'file_path': 'lec2.csv', 'summary': 'test2'},
+        {'file_path': 'lec2.csv', 'summary': 'test3'},
+        {'file_path': 'lec2.csv', 'summary': 'test4'},
+    ]
+    expected_result = [
+        [
+            {'file_path': 'lec1.csv', 'summary': 'test1'},
+            {'file_path': 'lec1.csv', 'summary': 'test2'},
+        ],
+        [
+            {'file_path': 'lec1.csv', 'summary': 'test3'},
+        ],
+        [
+            {'file_path': 'lec2.csv', 'summary': 'test1'},
+            {'file_path': 'lec2.csv', 'summary': 'test2'},
+        ],
+        [
+            {'file_path': 'lec2.csv', 'summary': 'test3'},
+            {'file_path': 'lec2.csv', 'summary': 'test4'},
+        ],
+    ]
+    t1 = GroupByFile()
+    t2 = SplitSummaries(max_tokens=2)
+    # add a new "Overflow()" task that takes these buckets and further subdivides
+    # ideally reuse logic from split transcript
+    grouped_files = t1.process(input_data)
+    overflow_files = t2.process(grouped_files)
+    assert overflow_files == expected_result

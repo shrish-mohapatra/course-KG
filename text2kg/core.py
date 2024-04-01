@@ -31,6 +31,7 @@ class MultiTask(Task):
 
             if not single_result:
                 num_failures += 1
+                continue
 
             if isinstance(single_result, list):
                 result.extend(single_result)
