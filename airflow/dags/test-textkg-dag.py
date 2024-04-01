@@ -17,8 +17,8 @@ from text2kg.core import Pipeline
 
 pipeline = Pipeline(
     tasks=[
-        # LoadFolder(folder_path="/opt/course-materials/COMP4601-F23/Lecture Captions"),
-        LoadFolder(),
+        LoadFolder(folder_path="/opt/course-materials/COMP4601-F23/Lecture Captions"),
+        # LoadFolder(),
         ExtractTranscripts(),
         SplitTranscripts(max_tokens=1000),
         SummarizeTranscripts(),

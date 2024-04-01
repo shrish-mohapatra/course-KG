@@ -223,7 +223,7 @@ class CreateKnowledgeGraphs(MultiTask, LLMTask):
 
     DEFAULT_FORMAT_PROMPT = """
     # Output Format Instructions
-    Produce only JSON output and nothing else like so: ```json\n{nodes: [{id: <name of concept>}...], edges: [{source: <id of source concept node>, target: <id of target concept node>}]}\n```
+    Produce only JSON output exactly like this: ```json\n{nodes: [{id: <name of concept>}...], edges: [{source: <id of source concept node>, target: <id of target concept node>}]}\n```
     # Key Concepts
     """
 
@@ -246,7 +246,9 @@ class CreateKnowledgeGraphs(MultiTask, LLMTask):
         joint_summaries_text = "\n".join(joint_summaries)
 
         prompt = self.prompt.strip() + joint_summaries_text
-        logging.info(f"Creating prompt of length={len(prompt)}")
+        num_tokens = len(prompt.split(" "))
+        logging.info(f"Creating prompt of length characters={len(prompt)}")
+        logging.info(f"Creating prompt of length tokens={num_tokens}")
         logging.info(f"Creating prompt={prompt}")
 
         for _ in range(self.retries + 1):
