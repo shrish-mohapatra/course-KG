@@ -92,6 +92,8 @@ const SAMPLE_GRAPH_DATA: GraphData = {
 interface GraphContextProps {
     graphData: GraphData;
     setGraphData: Dispatch<SetStateAction<GraphData>>;
+    editMode: boolean;
+    setEditMode: Dispatch<SetStateAction<boolean>>;
 }
 
 interface GraphProviderProps {
@@ -101,15 +103,19 @@ interface GraphProviderProps {
 export const GraphContext = createContext<GraphContextProps>({
     graphData: { nodes: [], links: [] },
     setGraphData: () => { },
+    editMode: false,
+    setEditMode: () => { },
 })
 
 export const GraphProvider: React.FC<GraphProviderProps> = ({ children }) => {
     const [graphData, setGraphData] = useState(SAMPLE_GRAPH_DATA)
+    const [editMode, setEditMode] = useState(false)
 
     return (
         <GraphContext.Provider
             value={{
-                graphData, setGraphData
+                graphData, setGraphData,
+                editMode, setEditMode,
             }}
         >
             {children}

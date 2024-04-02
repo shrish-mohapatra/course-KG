@@ -10,8 +10,9 @@ const projects = ["COMP 1405", "COMP 2406", "COMP 4601"]
 
 const ProjectSwitcher = () => {
     return (
-        <Select value="COMP 2406">
+        <Select>
             <SelectTrigger className="w-[180px]">
+                <span className="text-foreground">project</span>
                 <SelectValue />
             </SelectTrigger>
             <SelectContent>
