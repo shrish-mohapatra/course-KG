@@ -1,5 +1,6 @@
 import Controls from "./controls"
 import GraphModeSwitcher from "./graph-mode-switcher"
+import NodeDetails from "./node-details"
 import ProjectSwitcher from "./project-switcher"
 
 const Overlay = () => {
@@ -12,7 +13,10 @@ const Overlay = () => {
         <GraphModeSwitcher />
       </div>
       <div className="absolute top-[calc(50%-74px)] left-6">
-        <Controls/>
+        <Controls />
+      </div>
+      <div className="absolute top-0 left-0">
+        <NodeDetails />
       </div>
     </>
   )

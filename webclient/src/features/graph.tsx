@@ -5,7 +5,7 @@ import ForceGraph from "react-force-graph-2d"
 const COLORS = ["#68C651", "#5351C6", "#C6519E", "#C65151", "#51B1C6"]
 
 const Graph = () => {
-    const { graphData } = useContext(GraphContext)
+    const { graphData, setSelectedNode } = useContext(GraphContext)
 
     return (
         <ForceGraph
@@ -41,6 +41,7 @@ const Graph = () => {
             linkDirectionalArrowLength={4}
             linkColor={() => "rgba(255, 255, 255, 0.2)"}
             backgroundColor='#141414'
+            onNodeClick={(node) => setSelectedNode(node)}
         />
     )
 }

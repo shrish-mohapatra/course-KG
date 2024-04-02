@@ -1,10 +1,11 @@
 type MiniButtonProps = {
     title: string
+    onClick: React.MouseEventHandler<HTMLButtonElement> | undefined
 }
 
-const MiniButton = ({ title }: MiniButtonProps) => {
+const MiniButton = ({ title, onClick }: MiniButtonProps) => {
     return (
-        <button className="border-neutral-600 bg-neutral-800 px-2 border rounded-full h-[22px] text-sm">
+        <button onClick={onClick} className="border-neutral-600 bg-neutral-800 px-2 border rounded-full h-[22px] text-xs text-zinc-300">
             <span>{title}</span>
         </button>
     )

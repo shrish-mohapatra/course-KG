@@ -5,12 +5,16 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
+import { GraphContext } from "@/context/GraphProvider"
+import { useContext } from "react"
 
 const projects = ["COMP 1405", "COMP 2406", "COMP 4601"]
 
 const ProjectSwitcher = () => {
+    const { editMode } = useContext(GraphContext)
+
     return (
-        <Select>
+        <Select disabled={editMode}>
             <SelectTrigger className="w-[180px]">
                 <span className="text-foreground">project</span>
                 <SelectValue />

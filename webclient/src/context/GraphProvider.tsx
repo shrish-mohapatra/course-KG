@@ -1,5 +1,5 @@
 import { Dispatch, SetStateAction, createContext, useState, ReactNode } from "react";
-import { GraphData } from "react-force-graph-2d";
+import { GraphData, NodeObject } from "react-force-graph-2d";
 
 const SAMPLE_GRAPH_DATA: GraphData = {
     "nodes": [
@@ -94,6 +94,8 @@ interface GraphContextProps {
     setGraphData: Dispatch<SetStateAction<GraphData>>;
     editMode: boolean;
     setEditMode: Dispatch<SetStateAction<boolean>>;
+    selectedNode: NodeObject | undefined;
+    setSelectedNode: Dispatch<SetStateAction<NodeObject | undefined>>;
 }
 
 interface GraphProviderProps {
@@ -105,17 +107,21 @@ export const GraphContext = createContext<GraphContextProps>({
     setGraphData: () => { },
     editMode: false,
     setEditMode: () => { },
+    selectedNode: {},
+    setSelectedNode: () => { },
 })
 
 export const GraphProvider: React.FC<GraphProviderProps> = ({ children }) => {
     const [graphData, setGraphData] = useState(SAMPLE_GRAPH_DATA)
     const [editMode, setEditMode] = useState(false)
+    const [selectedNode, setSelectedNode] = useState<NodeObject | undefined>()
 
     return (
         <GraphContext.Provider
             value={{
                 graphData, setGraphData,
                 editMode, setEditMode,
+                selectedNode, setSelectedNode,
             }}
         >
             {children}
