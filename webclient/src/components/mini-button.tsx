@@ -1,6 +1,6 @@
 type MiniButtonProps = {
     title: string
-    onClick: React.MouseEventHandler<HTMLButtonElement> | undefined
+    onClick?: React.MouseEventHandler<HTMLButtonElement>
 }
 
 const MiniButton = ({ title, onClick }: MiniButtonProps) => {

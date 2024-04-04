@@ -318,7 +318,7 @@ services:
               count: 1
               capabilities: [gpu]
   
-  kg-api:
+  kgapi:
     build: ./kg-api
     command: uvicorn main:app --reload --host 0.0.0.0 --port 8000
     volumes:

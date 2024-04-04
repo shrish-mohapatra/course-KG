@@ -51,6 +51,11 @@ const NodeDetails = () => {
         setSelectedNode(undefined)
     }
 
+    const renderSource = (source: str) => {
+        const lastIndex = source.lastIndexOf("/")
+        return source.substring(lastIndex + 1)
+    }
+
     return (
         <Draggable
             handle='.handle'
@@ -68,16 +73,16 @@ const NodeDetails = () => {
                 <div className="flex flex-col flex-grow gap-1 bg-background rounded-[24px] p-4">
                     <p className="text-2xl text-accent">{selectedNode.id}</p>
                     <p className="text-zinc-500 pt-2">notes</p>
-                    <p className="text-sm text-zinc-300 text-justify">{SAMPLE_NODE.notes}</p>
+                    <p className="text-sm text-zinc-300 text-justify">{selectedNode.notes}</p>
                     <p className="text-zinc-500 pt-2">sources</p>
                     <div>
                         {
-                            SAMPLE_NODE.metadata.sources.map((source, index) => (
+                            selectedNode.sources.map((source, index) => (
                                 <p
                                     className="text-accent underline"
                                     key={`source-${index}`}
                                 >
-                                    {source}
+                                    {renderSource(source)}
                                 </p>
                             ))
                         }

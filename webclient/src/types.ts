@@ -1,3 +1,1 @@
-export type GraphData = {
-    
-}
+export type ProjectList = string[]

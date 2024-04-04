@@ -2,10 +2,18 @@ from db import collection
 from models import KnowledgeGraph
 
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from typing import List
 
 app = FastAPI(
     title="course-kg API"
+)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
