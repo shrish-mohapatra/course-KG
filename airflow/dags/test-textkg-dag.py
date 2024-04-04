@@ -8,6 +8,7 @@ from text2kg.task import (
     GroupByFile,
     GroupByFolder,
     LoadFolder,
+    SaveToDatabase,
     SplitTranscripts,
     SplitSummaries,
     SummarizeTranscripts,
@@ -28,7 +29,8 @@ pipeline = Pipeline(
         SplitSummaries(max_tokens=700),
         CreateKnowledgeGraphs(),
         GroupByFolder(),
-        CombineKnowledgeGraphs()
+        CombineKnowledgeGraphs(),
+        SaveToDatabase(),
     ],
     pipeline_engine=AirflowEngine(
         dag_name="test-textkg",

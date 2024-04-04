@@ -1,6 +1,8 @@
 import pytest
+from pymongo import MongoClient
 
 from text2kg.task import (
+    CombineKnowledgeGraphs,
     LoadFolder,
     ExtractTranscripts,
     SummarizeTranscripts,
@@ -8,6 +10,7 @@ from text2kg.task import (
     GroupByFile,
     GroupByFolder,
     SplitSummaries,
+    SaveToDatabase,
 )
 
 
@@ -155,3 +158,126 @@ def test_group_by_file_overflow():
     grouped_files = t1.process(input_data)
     overflow_files = t2.process(grouped_files)
     assert overflow_files == expected_result
+
+
+def test_combine_kg_sm():
+    input_data = [[
+        {
+            "file_path": "comp2406/t1",
+            "nodes": [
+                {"id": "node1"},
+                {"id": "node2"},
+                {"id": "node3"},
+            ],
+            "edges": [
+                {"source": "node1", "target": "node3"},
+                {"source": "node1", "target": "node2"},
+            ]
+        },
+        {
+            "file_path": "comp2406/t2",
+            "nodes": [
+                {"id": "Node1"},
+                {"id": "node4"},
+                {"id": "node5"},
+            ],
+            "edges": [
+                {"source": "Node1", "target": "node4"},
+                {"source": "node4", "target": "node5"},
+            ]
+        }
+    ]]
+    expected_output = [{
+        "nodes": [
+            {
+                "id": "node1",
+                "sources": ["comp2406/t1", "comp2406/t2"],
+            },
+            {
+                "id": "node2",
+                "sources": ["comp2406/t1"],
+            },
+            {
+                "id": "node3",
+                "sources": ["comp2406/t1"],
+            },
+            {
+                "id": "node4",
+                "sources": ["comp2406/t2"],
+            },
+            {
+                "id": "node5",
+                "sources": ["comp2406/t2"],
+            },
+        ],
+        "edges": [
+            {"source": "node1", "target": "node3"},
+            {"source": "node1", "target": "node2"},
+            {"source": "node1", "target": "node4"},
+            {"source": "node4", "target": "node5"},
+        ],
+    }]
+
+    t = CombineKnowledgeGraphs()
+    result = t.process(input_data)
+
+    print(result)
+
+    assert result == expected_output
+
+
+def test_save_to_db():
+    input_data = [{
+        "file_path": "lectures/captions/comp2406",
+        "nodes": [
+            {
+                "id": "node1",
+                "sources": ["comp2406/t1", "comp2406/t2"],
+            },
+            {
+                "id": "node2",
+                "sources": ["comp2406/t1"],
+            },
+            {
+                "id": "node3",
+                "sources": ["comp2406/t1"],
+            },
+            {
+                "id": "node4",
+                "sources": ["comp2406/t2"],
+            },
+            {
+                "id": "node5",
+                "sources": ["comp2406/t2"],
+            },
+        ],
+        "edges": [
+            {"source": "node1", "target": "node3"},
+            {"source": "node1", "target": "node2"},
+            {"source": "node1", "target": "node4"},
+            {"source": "node4", "target": "node5"},
+        ],
+    }]
+    t = SaveToDatabase(
+        mongo_host="localhost",
+        folder_mask="lectures/captions",
+        db_name="test-kg",
+    )
+    result = t.process(input_data)
+    assert len(result) != 0
+
+def test_get_from_db():
+    t = SaveToDatabase(
+        mongo_host="localhost",
+        folder_mask="lectures/captions",
+        # db_name="test-kg",
+    )
+    collection = t.collection
+
+    # Get list of project names
+    projects = collection.distinct("project_name")
+    print(f'projects={projects}')
+
+    # Get kg for specifc project name
+    project_comp2406 = collection.find_one({"project_name": "COMP1405-F19 2024-04-04 01:33:45.771794"})
+    print(f'project_comp2406={project_comp2406}')

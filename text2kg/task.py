@@ -1,3 +1,5 @@
+from datetime import datetime
+from pymongo import MongoClient
 from text2kg.core import Task, MultiTask, LLMTask, GroupByTask
 from typing import List
 
@@ -342,12 +344,149 @@ class CombineKnowledgeGraphs(MultiTask):
     """
 
     def process_single(self, single_data):
-        logging.info(single_data)
-        return single_data
+        kg = {
+            "file_path": "",
+            "nodes": {},
+            "edges": {},
+        }
+        renamed_ids = {}
+
+        for single_kg in single_data:
+            file_path: str = single_kg["file_path"]
+            kg["file_path"] = file_path
+
+            # Add nodes
+            for node in single_kg["nodes"]:
+                node_id: str = node["id"]
+
+                new_node_id = node_id.lower()
+                new_node = {
+                    "id": new_node_id,
+                    "sources": [file_path]
+                }
+
+                if new_node_id in kg["nodes"]:
+                    # Update node sources
+                    kg["nodes"][new_node_id]["sources"].append(file_path)
+                else:
+                    # Create node for first time
+                    kg["nodes"][new_node_id] = new_node
+
+                renamed_ids[node_id] = new_node_id
+
+            # Add edges
+            for edge in single_kg["edges"]:
+                source = edge["source"]
+                target = edge["target"]
+
+                if source not in renamed_ids:
+                    new_node_id = source.lower()
+                    kg["nodes"][new_node_id] = {
+                        "id": new_node_id,
+                        "sources": [file_path]
+                    }
+                    logging.warning(
+                        f"Adding new node from edges={new_node_id}")
+                    renamed_ids[source] = new_node_id
+
+                if target not in renamed_ids:
+                    new_node_id = target.lower()
+                    kg["nodes"][new_node_id] = {
+                        "id": new_node_id,
+                        "sources": [file_path]
+                    }
+                    logging.warning(
+                        f"Adding new node from edges={new_node_id}")
+                    renamed_ids[target] = new_node_id
+
+                new_source = renamed_ids[source]
+                new_target = renamed_ids[target]
+                new_edge = {
+                    "source": new_source,
+                    "target": new_target,
+                }
+
+                kg["edges"][source + target] = new_edge
+
+        kg["nodes"] = list(kg["nodes"].values())
+        kg["edges"] = list(kg["edges"].values())
+
+        num_nodes = len(kg["nodes"])
+        num_edges = len(kg["edges"])
+
+        logging.info(f"Created {num_nodes} nodes")
+        logging.info(f"Created {num_edges} edges")
+
+        return kg
 
 
-class SaveToDatabase(Task):
-    """Save knowledge graph to database"""
+class SaveToDatabase(MultiTask):
+    """
+    Save knowledge graph to database
+    - single_input: [{file_path, nodes, edges}] to save
+    - single_output: MongoDB result
+    """
 
-    def process(self, data):
-        logging.info(f"Saving graph to DB: {data}")
+    def __init__(
+        self,
+        mongo_host='mongodb',
+        mongo_port=27017,
+        mongo_username="root",
+        mongo_password="pw",
+
+        folder_mask='/opt/course-materials',
+        db_name='course-kg',
+        collection_name='kg',
+    ):
+        """
+        Args:
+        - mongo_host: MongoDB host address
+        - mongo_port: MongoDB port
+        - mongo_username: MongoDB username
+        - mongo_password: MongoDB password
+        - folder_mask: Path to exclude when creating MongoDB collection
+        - db_name: Name of database to use
+        - collection_name: Name of collection to store KG in 
+        """
+        super().__init__()
+        self.folder_mask = folder_mask
+
+        self.mongo_host = mongo_host
+        self.mongo_port = mongo_port
+        self.mongo_username = mongo_username
+        self.mongo_password = mongo_password
+
+        self.db_name = db_name
+        self.collection_name = collection_name
+
+        self._connect_db()
+
+    def _connect_db(self):
+        self._client = MongoClient(
+            self.mongo_host,
+            self.mongo_port,
+            username="root",
+            password="pw",
+        )
+        self._db = self._client[self.db_name]
+        self.collection = self._db[self.collection_name]
+        logging.info(f"Using collection={self.collection}")
+
+    def process_single(self, single_data):
+        file_path = single_data["file_path"]
+        masked_file_path = file_path[len(self.folder_mask)+1:]
+        fp_elements = masked_file_path.split('/')
+        project_name = f"{fp_elements[0]} {str(datetime.now())}"
+
+        logging.info(f"Saving graph to DB: {project_name}")
+
+        project = {
+            "project_name": project_name,
+            "nodes": single_data["nodes"],
+            "edges": single_data["edges"],
+        }
+
+        project_id = self.collection.insert_one(project).inserted_id
+        project_id_str = str(project_id)
+        logging.info(f"Created project id={project_id_str}")
+        return project_id_str

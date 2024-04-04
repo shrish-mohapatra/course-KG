@@ -298,6 +298,10 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: pw
+    ports:
+      - 27017:27017
+    volumes:
+      - mongodb_data:/data/db
   
   ollama:
     image: ollama/ollama
@@ -316,4 +320,5 @@ services:
 
 volumes:
   postgres-db-volume:
+  mongodb_data:
   ollama-volume:
