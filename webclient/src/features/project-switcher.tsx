@@ -8,21 +8,36 @@ import {
 import { GraphContext } from "@/context/GraphProvider"
 import { useContext } from "react"
 
-const projects = ["COMP 1405", "COMP 2406", "COMP 4601"]
-
 const ProjectSwitcher = () => {
-    const { editMode } = useContext(GraphContext)
+    const { projects, editMode, selectProject } = useContext(GraphContext)
+
+    const handleValueChange = (newValue: string) => {
+        selectProject(newValue)
+    }
+
+    const formatProject = (projectValue: string) => {
+        const mask = "2024-04-04 02:47:17.119678"
+        const end = projectValue.length - mask.length
+        return projectValue.slice(0, end)
+    }
+
+    if (!projects) return
 
     return (
-        <Select disabled={editMode}>
-            <SelectTrigger className="w-[180px]">
+        <Select
+            disabled={editMode}
+            onValueChange={handleValueChange}
+        >
+            <SelectTrigger className="w-[220px]">
                 <span className="text-foreground">project</span>
-                <SelectValue />
+                <SelectValue placeholder="select a project"/>
             </SelectTrigger>
             <SelectContent>
                 {
                     projects.map((project, index) => (
-                        <SelectItem value={project} key={index}>{project}</SelectItem>
+                        <SelectItem value={project} key={index}>
+                            {formatProject(project)}
+                        </SelectItem>
                     ))
                 }
             </SelectContent>

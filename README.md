@@ -38,6 +38,10 @@ docker compose up -d
 docker compose down
 ```
 
+### kg-api
+A FastAPI microservice is used to interface with MongoDB database to retrieve and modify knowledge graphs.
+The API can be tested through the OpenAPI swagger docs: http://localhost:8000/docs
+
 ### MongoDB
 MongoDB is used to store the nodes and edges comprising a knowledge graph.
 ```shell

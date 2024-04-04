@@ -2,7 +2,7 @@ import { GraphContext } from "@/context/GraphProvider"
 import { useContext } from "react"
 import ForceGraph from "react-force-graph-2d"
 
-const COLORS = ["#68C651", "#5351C6", "#C6519E", "#C65151", "#51B1C6"]
+const COLORS = ["#cccccc", "#68C651", "#5351C6", "#C6519E", "#C65151", "#51B1C6"]
 
 const Graph = () => {
     const { graphData, setSelectedNode } = useContext(GraphContext)
@@ -12,9 +12,21 @@ const Graph = () => {
             graphData={graphData}
             nodeCanvasObject={(node, ctx, globalScale) => {
                 const label = node.id;
+                const value = node.value || 1
                 if (!label || typeof label !== "string") return
                 
-                const fontSize = (node.value || 8) * 2 / globalScale;
+                // const fontSize = (node.value || 8) * 2 / globalScale;
+                const fontSize = 10 * (1 + (value/5)) / globalScale;
+
+                if (value < (1/globalScale)) {
+                    ctx.fillStyle = node.group ? COLORS[node.group] : COLORS[0];
+                    ctx.beginPath();
+                    ctx.arc(node.x, node.y, value * 2, 0, 2 * Math.PI, false);
+                    ctx.fill();
+                    return
+                }
+                // console.log(label, fontSize)
+                // const fontSize = (8) * 2 / globalScale;
                 ctx.font = `${fontSize}px Sans-Serif`;
                 const textWidth = ctx.measureText(label).width;
                 const bckgDimensions = [textWidth, fontSize].map(n => n + fontSize * 0.2); // some padding
