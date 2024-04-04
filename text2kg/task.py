@@ -465,8 +465,8 @@ class SaveToDatabase(MultiTask):
         self._client = MongoClient(
             self.mongo_host,
             self.mongo_port,
-            username="root",
-            password="pw",
+            username=self.mongo_username,
+            password=self.mongo_password,
         )
         self._db = self._client[self.db_name]
         self.collection = self._db[self.collection_name]
