@@ -72,12 +72,27 @@ export const GraphProvider: React.FC<GraphProviderProps> = ({ children }) => {
 
     const selectProject = async (projectName: string) => {
         const newKG = await getKnowledgeGraph(projectName)
+        const { nodes, edges } = newKG
+
+        const node_id_to_index = {}
+
+        for (let i = 0; i < nodes.length; i++) {
+            node_id_to_index[nodes[i].id] = i
+        }
+
+        // Assign node value based on # of source edges
+        for (let edge of edges) {
+            const id1 = edge.source
+            const node_index = node_id_to_index[id1]
+            if(!nodes[node_index].value) {
+                nodes[node_index].value = 0
+            } 
+            nodes[node_index].value += 1
+        }
+
         const newGraphData = {
-            nodes: newKG.nodes.map(node => ({
-                ...node,
-                value: node.sources.length * 8
-            })),
-            links: newKG.edges,
+            nodes,
+            links: edges,
         }
 
         setGraphData(newGraphData)
