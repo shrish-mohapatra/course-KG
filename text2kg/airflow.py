@@ -46,14 +46,10 @@ class AirflowEngine(PipelineEngine):
     def execute(self, tasks: List[Task]):
         logging.info('Executing airflow dag')
         with DAG(
-            'test-textkg-dag',
-            default_args={
-                'owner': 'shrish',
-                'depends_on_past': False,
-                'retries': 1,
-            },
-            description='Example pipeline to convert transcripts to knowledge graph',
-            tags=['testing'],
+            self.dag_name,
+            default_args=self.dag_args,
+            description=self.description,
+            tags=self.tags,
         ) as dag:
             # Register tasks with Airflow DAG
             for i in range(len(tasks)):
