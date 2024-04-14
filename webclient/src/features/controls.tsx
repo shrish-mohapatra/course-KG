@@ -7,9 +7,11 @@ import SortNodesIcon from "@/components/SortNodesIcon";
 
 import AddNode from "./add-node";
 import SortNodes from "./sort-nodes";
+import AddEdge from "./add-edge";
 
 const CONTROL_PANELS: { [key: string]: JSX.Element } = {
   node: <AddNode />,
+  edge: <AddEdge />,
   sort: <SortNodes />,
 };
 

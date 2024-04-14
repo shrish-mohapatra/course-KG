@@ -56,6 +56,8 @@ interface GraphContextProps {
   graphRef: MutableRefObject<ForceGraphMethods> | null;
   sortMode: DagMode;
   setSortMode: Dispatch<SetStateAction<DagMode>>;
+  sourceNode: string;
+  setSourceNode: Dispatch<SetStateAction<string>>;
 }
 
 interface GraphProviderProps {
@@ -76,6 +78,8 @@ export const GraphContext = createContext<GraphContextProps>({
   graphRef: null,
   sortMode: undefined,
   setSortMode: () => {},
+  sourceNode: "",
+  setSourceNode: () => {},
 });
 
 export const GraphProvider: React.FC<GraphProviderProps> = ({ children }) => {
@@ -84,6 +88,7 @@ export const GraphProvider: React.FC<GraphProviderProps> = ({ children }) => {
   const [selectedNode, setSelectedNode] = useState<NodeObject>();
   const [editAction, setEditAction] = useState("");
   const [sortMode, setSortMode] = useState<DagMode>();
+  const [sourceNode, setSourceNode] = useState("");
 
   const [projects, setProjects] = useState<ProjectList>();
 
@@ -137,6 +142,8 @@ export const GraphProvider: React.FC<GraphProviderProps> = ({ children }) => {
         setEditAction,
         sortMode,
         setSortMode,
+        sourceNode,
+        setSourceNode,
       }}
     >
       {children}

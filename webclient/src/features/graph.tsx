@@ -1,6 +1,6 @@
 import { GraphContext } from "@/context/GraphProvider";
 import { useContext } from "react";
-import ForceGraph from "react-force-graph-2d";
+import ForceGraph, { NodeObject } from "react-force-graph-2d";
 
 const COLORS = [
   "#cccccc",
@@ -12,7 +12,31 @@ const COLORS = [
 ];
 
 const Graph = () => {
-  const { graphRef, graphData, setSelectedNode, editMode, sortMode } =useContext(GraphContext);
+  const {
+    graphRef,
+    graphData,
+    setGraphData,
+    setSelectedNode,
+    editMode,
+    editAction,
+    sortMode,
+    sourceNode,
+    setSourceNode,
+  } = useContext(GraphContext);
+
+  const handleClick = (node: NodeObject) => {
+    if (!editMode || editAction != "edge") return;
+    if (sourceNode != "") {
+      console.log("create edge from", sourceNode, node.id);
+      setGraphData((curData) => ({
+        nodes: curData.nodes,
+        links: [...curData.links, { source: sourceNode, target: node.id }],
+      }));
+      setSourceNode("");
+    } else {
+      setSourceNode(node.id as string);
+    }
+  };
 
   return (
     <ForceGraph
@@ -72,7 +96,8 @@ const Graph = () => {
       linkDirectionalArrowLength={4}
       linkColor={() => "rgba(255, 255, 255, 0.2)"}
       backgroundColor="#141414"
-      onNodeClick={(node) => setSelectedNode(node)}
+      onNodeRightClick={(node) => setSelectedNode(node)}
+      onNodeClick={handleClick}
       d3VelocityDecay={editMode ? 0.8 : 0.4}
       dagMode={sortMode}
     />

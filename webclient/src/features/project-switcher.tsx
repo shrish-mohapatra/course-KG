@@ -28,7 +28,7 @@ const ProjectSwitcher = () => {
             disabled={editMode}
             onValueChange={handleValueChange}
         >
-            <SelectTrigger className="w-[220px]">
+            <SelectTrigger className="w-[220px] backdrop-filter backdrop-blur-lg">
                 <span className="text-foreground">project</span>
                 <SelectValue placeholder="select a project"/>
             </SelectTrigger>
