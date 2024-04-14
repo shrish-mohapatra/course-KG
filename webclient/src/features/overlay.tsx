@@ -2,6 +2,7 @@ import Controls from "./controls"
 import GraphModeSwitcher from "./graph-mode-switcher"
 import NodeDetails from "./node-details"
 import ProjectSwitcher from "./project-switcher"
+import SearchNode from "./search-node"
 
 const Overlay = () => {
   return (
@@ -18,6 +19,7 @@ const Overlay = () => {
       <div className="absolute top-0 left-0">
         <NodeDetails />
       </div>
+      <SearchNode/>
     </>
   )
 }
