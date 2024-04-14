@@ -4,23 +4,29 @@ import { useContext, useState } from "react";
 
 const AddNode = () => {
   const [nodeName, setNodeName] = useState("");
-  const { setGraphData } = useContext(GraphContext)
+  const { setGraphData, graphRef } = useContext(GraphContext);
   const handleAdd = () => {
-    if(!nodeName) return
+    if (!nodeName || !graphRef || !graphRef.current) return;
     console.log("adding node", nodeName);
-    setGraphData(curData => {
-        return {
-            nodes: [
-                ...curData.nodes,
-                {
-                    id: nodeName,
-                    value: 1
-                }
-            ],
-            links: curData.links
-        }
-    })
-    setNodeName("")
+    // console.log(graphRef.current.getGraphBbox())
+    setGraphData((curData) => {
+      console.log(curData);
+      return {
+        nodes: [
+          ...curData.nodes,
+          {
+            id: nodeName,
+            value: 1,
+          },
+        ],
+        links: curData.links,
+      };
+    });
+    setNodeName("");
+    setTimeout(
+      () => graphRef.current.zoomToFit(400, 300, (node) => node.id == nodeName),
+      200
+    );
   };
 
   return (
@@ -28,7 +34,7 @@ const AddNode = () => {
       <div>
         <h1 className="text-accent">add node</h1>
         <p className="text-xs text-zinc-300">
-          Provide a name for the new node to add to the graph
+          Provide a name for the new node to add to the graph.
         </p>
       </div>
       <div className="flex justify-between mb-2">

@@ -1,13 +1,16 @@
 import { useContext } from "react";
 import { GraphContext } from "@/context/GraphProvider";
+
 import AddNodeIcon from "@/components/AddNodeIcon";
 import AddEdgeIcon from "@/components/AddEdgeIcon";
 import SortNodesIcon from "@/components/SortNodesIcon";
-import AddNode from "./add-node";
 
-const CONTROL_PANELS = {
-  "": "",
+import AddNode from "./add-node";
+import SortNodes from "./sort-nodes";
+
+const CONTROL_PANELS: { [key: string]: JSX.Element } = {
   node: <AddNode />,
+  sort: <SortNodes />,
 };
 
 const Controls = () => {
