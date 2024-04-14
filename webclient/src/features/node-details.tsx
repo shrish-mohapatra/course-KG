@@ -45,7 +45,7 @@ const NodeDetails = () => {
         }
     }, [selectedNode])
 
-    if (!selectedNode) return
+    if (!selectedNode || !selectedNode.sources) return
 
     const handleCollapse = () => {
         setSelectedNode(undefined)

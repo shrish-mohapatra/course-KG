@@ -42,6 +42,8 @@ interface GraphContextProps {
     setSelectedNode: Dispatch<SetStateAction<NodeObject | undefined>>;
     projects: ProjectList | undefined;
     selectProject: (projectName: string) => void;
+    editAction: string;
+    setEditAction: Dispatch<SetStateAction<string>>;
 }
 
 interface GraphProviderProps {
@@ -57,12 +59,15 @@ export const GraphContext = createContext<GraphContextProps>({
     setSelectedNode: () => { },
     projects: [],
     selectProject: () => { },
+    editAction: '',
+    setEditAction: () => { },
 })
 
 export const GraphProvider: React.FC<GraphProviderProps> = ({ children }) => {
     const [graphData, setGraphData] = useState(SAMPLE_GRAPH_DATA)
     const [editMode, setEditMode] = useState(false)
     const [selectedNode, setSelectedNode] = useState<NodeObject>()
+    const [editAction, setEditAction] = useState('')
 
     const [projects, setProjects] = useState<ProjectList>()
 
@@ -74,7 +79,7 @@ export const GraphProvider: React.FC<GraphProviderProps> = ({ children }) => {
         const newKG = await getKnowledgeGraph(projectName)
         const { nodes, edges } = newKG
 
-        const node_id_to_index = {}
+        const node_id_to_index: { [key: number]: number } = {}
 
         for (let i = 0; i < nodes.length; i++) {
             node_id_to_index[nodes[i].id] = i
@@ -105,6 +110,7 @@ export const GraphProvider: React.FC<GraphProviderProps> = ({ children }) => {
                 editMode, setEditMode,
                 selectedNode, setSelectedNode,
                 projects, selectProject,
+                editAction, setEditAction,
             }}
         >
             {children}
