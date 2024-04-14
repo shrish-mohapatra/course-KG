@@ -23,10 +23,10 @@ const AddNode = () => {
       };
     });
     setNodeName("");
-    setTimeout(
-      () => graphRef.current.zoomToFit(400, 300, (node) => node.id == nodeName),
-      200
-    );
+    // setTimeout(
+    //   () => graphRef.current.zoomToFit(400, 300, (node) => node.id == nodeName),
+    //   200
+    // );
   };
 
   return (

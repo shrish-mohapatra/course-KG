@@ -1,6 +1,6 @@
 import { GraphContext } from "@/context/GraphProvider";
 import { useContext } from "react";
-import ForceGraph, { NodeObject } from "react-force-graph-2d";
+import ForceGraph, { LinkObject, NodeObject } from "react-force-graph-2d";
 
 const COLORS = [
   "#cccccc",
@@ -24,7 +24,7 @@ const Graph = () => {
     setSourceNode,
   } = useContext(GraphContext);
 
-  const handleClick = (node: NodeObject) => {
+  const handleNodeClick = (node: NodeObject) => {
     if (!editMode || editAction != "edge") return;
     if (sourceNode != "") {
       console.log("create edge from", sourceNode, node.id);
@@ -36,6 +36,42 @@ const Graph = () => {
     } else {
       setSourceNode(node.id as string);
     }
+  };
+
+  const handleNodeRightClick = (node: NodeObject) => {
+    if (editMode) {
+      console.log("removing node", node);
+      setGraphData((curData) => {
+        const newNodes = [...curData.nodes];
+        let newLinks = [...curData.links];
+
+        newLinks = newLinks.filter(link => {
+          console.log(link)
+          return link.source != node && link.target != node
+        })
+        newNodes.splice(node.index, 1);
+
+        return {
+          nodes: newNodes,
+          links: newLinks,
+        };
+      });
+    } else {
+      setSelectedNode(node);
+    }
+  };
+
+  const handleLinkRightClick = (link: LinkObject) => {
+    if (!editMode) return;
+    console.log("removing link", link);
+    setGraphData((curData) => {
+      const newLinks = [...curData.links];
+      newLinks.splice(link.index, 1);
+      return {
+        nodes: curData.nodes,
+        links: newLinks,
+      };
+    });
   };
 
   return (
@@ -52,6 +88,10 @@ const Graph = () => {
 
         if (value < 1 / globalScale) {
           ctx.fillStyle = node.group ? COLORS[node.group] : COLORS[0];
+          if(node.id == sourceNode) {
+            console.log("condition met")
+            ctx.fillStyle = "#da652f"
+          }
           ctx.beginPath();
           ctx.arc(node.x, node.y, value * 2, 0, 2 * Math.PI, false);
           ctx.fill();
@@ -96,8 +136,9 @@ const Graph = () => {
       linkDirectionalArrowLength={4}
       linkColor={() => "rgba(255, 255, 255, 0.2)"}
       backgroundColor="#141414"
-      onNodeRightClick={(node) => setSelectedNode(node)}
-      onNodeClick={handleClick}
+      onNodeClick={handleNodeClick}
+      onNodeRightClick={handleNodeRightClick}
+      onLinkRightClick={handleLinkRightClick}
       d3VelocityDecay={editMode ? 0.8 : 0.4}
       dagMode={sortMode}
     />
