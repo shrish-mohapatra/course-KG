@@ -41,6 +41,7 @@ const NodeDetails = () => {
         bottom: window.innerHeight - modalRef.current.clientHeight,
       });
     }
+    console.log({ selectedNode });
   }, [selectedNode]);
 
   if (!selectedNode || !selectedNode.sources) return;
@@ -89,17 +90,15 @@ const NodeDetails = () => {
               </p>
             ))}
           </div>
-          <div className="font-mono text-xs text-zinc-500 pt-4 flex justify-between">
-            <div>
-              <p>contributors</p>
-              <p>date created</p>
-              <p>date edited</p>
-            </div>
-            <div>
-              <p>{SAMPLE_NODE.metadata.contributors}</p>
-              <p>{SAMPLE_NODE.metadata.dateCreated}</p>
-              <p>{SAMPLE_NODE.metadata.dateEdited}</p>
-            </div>
+          <div className="font-mono text-xs text-zinc-500 pt-4">
+            {
+              Object.entries(selectedNode.contributors).map(([key, value]) => (
+                <div className="flex justify-between">
+                  <p>{key}</p>
+                  <p>{value}</p>
+                </div>
+              ))
+            }
           </div>
         </div>
       </div>

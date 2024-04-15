@@ -23,7 +23,7 @@ pipeline = Pipeline(
         t2k.FixKnowledgeGraphs(model="gemma:2b"),
         t2k.GroupByFolder(),
         t2k.CombineKnowledgeGraphs(),
-        t2k.SaveToDatabase(collection_name="mini-kg"),
+        t2k.SaveToDatabase(collection_name="mini-kg2"),
     ],
     pipeline_engine=AirflowEngine(
         dag_name="mini-textkg-gemma-2b",

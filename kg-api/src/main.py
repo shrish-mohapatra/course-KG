@@ -30,7 +30,6 @@ async def get_project() -> List[str]:
 @app.get("/kg")
 async def get_kg(project_name: str) -> KnowledgeGraph:
     result = collection.find_one({"project_name": project_name})
-    # print(result)
     if not result:
         return HTTPException(status_code=404, detail="Project not found")
 

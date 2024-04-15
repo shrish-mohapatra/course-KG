@@ -283,9 +283,9 @@ def test_get_from_db():
     print(f'project_comp2406={project_comp2406}')
 
 def test_similarity():
-    node1 = "pageRankAlgorithm"
+    node1 = "cold_start_problem"
     # node2 = "restful api"
-    node2 = "pageRank"
+    node2 = "cold_start"
     node3 = "HTTP endpoints"
 
     import numpy as np
@@ -300,5 +300,17 @@ def test_similarity():
     similarity_2 = 1 / (1 + np.linalg.norm(embeddings[0] - embeddings[2]))
     print(similarity_2)
 
-    # todo: try stemming techniques
+    assert 1 == 2
+
+def test_stemming():
+    from nltk.stem import PorterStemmer
+
+    stemmer = PorterStemmer()
+    # texts = ["list", "lists", "Lists", "arrays"]
+    texts = ["cold-start", "cold_start", "cold-start-problem", "cold-problem"]
+
+    texts = [text.replace('-', ' ') for text in texts]
+    texts = [text.replace('_', ' ') for text in texts]
+    stemmed_texts = [stemmer.stem(text) for text in texts]
+    print(stemmed_texts)
     assert 1 == 2

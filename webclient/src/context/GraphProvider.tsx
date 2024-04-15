@@ -100,8 +100,8 @@ export const GraphProvider: React.FC<GraphProviderProps> = ({ children }) => {
 
   const selectProject = async (projectName: string) => {
     const newKG = await getKnowledgeGraph(projectName);
-    const { nodes, edges } = newKG;
-    console.log({nodes})
+    const { nodes, edges, contributors } = newKG;
+    console.log({contributors})
 
     const node_id_to_index: { [key: number]: number } = {};
 
@@ -117,6 +117,7 @@ export const GraphProvider: React.FC<GraphProviderProps> = ({ children }) => {
         nodes[node_index].value = 0;
       }
       nodes[node_index].value += 1;
+      nodes[node_index].contributors = contributors;
     }
 
     const newGraphData = {

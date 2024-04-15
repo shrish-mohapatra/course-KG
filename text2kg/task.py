@@ -8,6 +8,7 @@ import json
 import os
 import pandas as pd
 import numpy as np
+from nltk.stem import PorterStemmer
 
 
 class LoadFolder(Task):
@@ -447,60 +448,46 @@ class FixKnowledgeGraphs(CreateKnowledgeGraphs):
         return result
 
 
-class CombineKnowledgeGraphs(MultiTask, LLMTask):
+class CombineKnowledgeGraphs(MultiTask):
     """
     Combine a list of knowledge graphs into one
     - single_input: [{file_path, nodes, edges}] to combine
     - single_output: {nodes, edges} combined
     """
 
-    def __init__(
-        self,
-        embedding_model="all-minilm",
-        sim_threshold=0.65,
-        *args,
-        **kwargs
-    ) -> None:
+    def __init__(self, stemmer=PorterStemmer()) -> None:
         """
         Args
-        - embedding_model: model used to convert text into semantic vectors
-        - sim_threshold: Similarity score threshold for grouping nodes
+        - stemmer: Used to group similar nodes together
         """
-        super().__init__("", *args, **kwargs)
-        self.embedding_model = embedding_model
-        self.sim_threshold = sim_threshold
+        super().__init__()
+        self.stemmer = stemmer
+    
+    def _get_stem(self, text: str):
+        text = text.replace('-', '')
+        text = text.replace('_', '')
+        return self.stemmer.stem(text)
 
     def _add_node(self, node, kg, file_path):
-        old_node_id: str = node["id"]
-        node_id = old_node_id.lower()
+        node_id: str = node["id"]
+        node_id_stem = self._get_stem(node_id)
 
         # Quick check to see if node exists
         if node_id in kg["nodes"]:
             kg["nodes"][node_id]["sources"].append(file_path)
             return node_id
 
-        # Semantic check to see if similar node exists
-        embedding_response = self._llm.embeddings(
-            self.embedding_model, node_id)
-        node_embedding = np.array(embedding_response["embedding"])
-        logging.info(f"Calculated embedding for node={node_id}")
-
+        # Check stems
         for other_node_id in kg["nodes"]:
-            other_node = kg["nodes"][other_node_id]
-            other_embedding = other_node["embedding"]
-            similarity = 1 / \
-                (1 + np.linalg.norm(node_embedding - other_embedding))
-
-            if similarity > self.sim_threshold:
-                logging.info(
-                    f"similarity bw {node_id} and {other_node_id}={similarity}")
-                kg["nodes"][node_id]["sources"].append(file_path)
-                return node["id"]
+            other_stem = self._get_stem(other_node_id)
+            if other_stem == node_id_stem:
+                logging.info(f"Combining nodes {node_id} and {other_node_id}")
+                kg["nodes"][other_node_id]["sources"].append(file_path)
+                return other_node_id
 
         # Create new node
         node["id"] = node_id
         kg["nodes"][node_id] = node
-        kg["nodes"][node_id]["embedding"] = node_embedding
         kg["nodes"][node_id]["sources"] = [file_path]
         return node_id
 
@@ -542,9 +529,12 @@ class CombineKnowledgeGraphs(MultiTask, LLMTask):
                 edge["target"] = new_node_ids[1]
                 kg["edges"][str(new_node_ids)] = edge
 
-        # delete embeddings
-        for node_id in kg["nodes"]:
-            del kg["nodes"][node_id]["embedding"]
+        # Count nodes with no edges
+        # for node in kg["nodes"]:
+        #     edges = list(kg["edges"].keys())
+        #     edges_f = list(filter(lambda x: node in x, edges))
+        #     if not edges_f:
+        #         logging.info(node)
 
         kg["nodes"] = list(kg["nodes"].values())
         kg["edges"] = list(kg["edges"].values())
