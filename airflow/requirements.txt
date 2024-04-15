@@ -2,3 +2,4 @@ ollama==0.1.8
 pandas==2.0.3
 pymongo==4.6.3
 pytest==8.1.1
+sentence-transformers==2.6.1

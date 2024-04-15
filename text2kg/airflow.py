@@ -54,7 +54,7 @@ class AirflowEngine(PipelineEngine):
             # Register tasks with Airflow DAG
             for i in range(len(tasks)):
                 task = tasks[i]
-                task_id = get_task_id(task)
+                task_id = str(i) + get_task_id(task)
                 task_operator = PythonOperator(
                     task_id=task_id,
                     python_callable=execute_task,
@@ -66,5 +66,5 @@ class AirflowEngine(PipelineEngine):
                 # Configure task dependencies
                 if i > 0:
                     prev_task = tasks[i-1]
-                    prev_task_id = get_task_id(prev_task)
+                    prev_task_id = str(i-1) + get_task_id(prev_task)
                     dag.set_dependency(prev_task_id, task_id)

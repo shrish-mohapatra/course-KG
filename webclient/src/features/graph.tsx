@@ -45,10 +45,10 @@ const Graph = () => {
         const newNodes = [...curData.nodes];
         let newLinks = [...curData.links];
 
-        newLinks = newLinks.filter(link => {
-          console.log(link)
-          return link.source != node && link.target != node
-        })
+        newLinks = newLinks.filter((link) => {
+          console.log(link);
+          return link.source != node && link.target != node;
+        });
         newNodes.splice(node.index, 1);
 
         return {
@@ -88,9 +88,9 @@ const Graph = () => {
 
         if (value < 1 / globalScale) {
           ctx.fillStyle = node.group ? COLORS[node.group] : COLORS[0];
-          if(node.id == sourceNode) {
-            console.log("condition met")
-            ctx.fillStyle = "#da652f"
+          if (node.id == sourceNode) {
+            console.log("condition met");
+            ctx.fillStyle = "#da652f";
           }
           ctx.beginPath();
           ctx.arc(node.x, node.y, value * 2, 0, 2 * Math.PI, false);
@@ -132,6 +132,9 @@ const Graph = () => {
               ...bckgDimensions
             );
         }
+      }}
+      linkLabel={(link) => {
+        return link.relationship
       }}
       linkDirectionalArrowLength={4}
       linkColor={() => "rgba(255, 255, 255, 0.2)"}

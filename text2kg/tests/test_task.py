@@ -281,3 +281,24 @@ def test_get_from_db():
     # Get kg for specifc project name
     project_comp2406 = collection.find_one({"project_name": "COMP1405-F19 2024-04-04 01:33:45.771794"})
     print(f'project_comp2406={project_comp2406}')
+
+def test_similarity():
+    node1 = "pageRankAlgorithm"
+    # node2 = "restful api"
+    node2 = "pageRank"
+    node3 = "HTTP endpoints"
+
+    import numpy as np
+    from sentence_transformers import SentenceTransformer
+    embedding_model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+
+    embeddings = embedding_model.encode([node1, node2, node3])
+
+    similarity_1 = 1 / (1 + np.linalg.norm(embeddings[0] - embeddings[1]))
+    print(similarity_1)
+
+    similarity_2 = 1 / (1 + np.linalg.norm(embeddings[0] - embeddings[2]))
+    print(similarity_2)
+
+    # todo: try stemming techniques
+    assert 1 == 2

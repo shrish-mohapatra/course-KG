@@ -7,6 +7,7 @@ import logging
 import json
 import os
 import pandas as pd
+import numpy as np
 
 
 class LoadFolder(Task):
@@ -149,6 +150,7 @@ class SummarizeTranscripts(MultiTask, LLMTask):
 
         result = {
             "file_path": file_path,
+            "contributors": {"summarized by": self.model},
             "summary": llm_response
         }
         return result
@@ -252,21 +254,62 @@ class SplitSummaries(Task):
         return new_buckets
 
 
+class ExtractConcepts(MultiTask, LLMTask):
+    """
+    Invoke an LLM to extract important concepts from summaries
+    - single_input: [{file_path, summary, contributors}]
+    - single_output: [{file_path, nodes, edges, contributors: [str]}]
+    """
+
+    DEFAULT_PROMPT = """
+    Given the following university lecture summary, identify the most important concept from this and organize related subtopics.
+    # Lecture Summary
+    {summary}
+    """
+
+    def __init__(self, prompt=DEFAULT_PROMPT, *args, **kwargs):
+        super().__init__(prompt, *args, **kwargs)
+
+    def process_single(self, single_data):
+        file_path = single_data[0]["file_path"]
+        contributors = single_data[0]["contributors"]
+        contributors["concepts extracted by"] = self.model
+
+        logging.info(f"Extracting concepts KG on {len(single_data)} summaries")
+        joint_summaries = list(map(lambda x: x["summary"], single_data))
+        joint_summaries_text = "\n".join(joint_summaries)
+
+        prompt = self.prompt.format(summary=joint_summaries_text).strip()
+        logging.info(f"Created LLM prompt={prompt}")
+        logging.info(f"LLM prompt length={len(prompt)}")
+
+        response = self._llm.generate(self.model, prompt)
+        llm_response = response["response"]
+        logging.info(f"Received LLM response={llm_response}")
+
+        result = {
+            "file_path": file_path,
+            "contributors": contributors,
+            "summary": llm_response,
+        }
+        return result
+
+
 class CreateKnowledgeGraphs(MultiTask, LLMTask):
     """
     Invoke an LLM to create knowledge graphs based on summaries
-    - single_input: [{file_path, summary}]
+    - single_input: [{file_path, summary, contributors}]
     - single_output: [{file_path, nodes, edges, contributors: [str]}]
     """
 
     DEFAULT_SYSTEM_PROMPT = """
     Given the following key concepts extracted from a university lecture transcript, list the nodes and edges in JSON format that can form a knowledge graph based on the key topics.
-    Only create nodes based on large concepts. Only create an edge if the source concept is a prequisite to understand the target concept.
+    Only create nodes based on large concepts. Only create an edge if there is a relationship between source node and target node.
     """
 
     DEFAULT_FORMAT_PROMPT = """
     # Output Format Instructions
-    Produce only JSON output exactly like this: ```json\n{nodes: [{id: <name of concept>}...], edges: [{source: <id of source concept node>, target: <id of target concept node>}]}\n```
+    Produce only JSON output exactly like this: ```json\n{nodes: [{id: <name of concept>, notes: <description of concept>}...], edges: [{source: <id of source concept node>, target: <id of target concept node>, relationship: <type of relationship>}]}\n```
     # Key Concepts
     """
 
@@ -283,6 +326,8 @@ class CreateKnowledgeGraphs(MultiTask, LLMTask):
 
     def process_single(self, single_data):
         file_path = single_data[0]["file_path"]
+        contributors = single_data[0]["contributors"]
+        contributors["KGs created by"] = self.model
 
         logging.info(f"Creating KG on {len(single_data)} summaries")
         joint_summaries = list(map(lambda x: x["summary"], single_data))
@@ -310,6 +355,7 @@ class CreateKnowledgeGraphs(MultiTask, LLMTask):
 
         result = {
             "file_path": file_path,
+            "contributors": contributors,
             "nodes": json_kg["nodes"],
             "edges": json_kg["edges"],
         }
@@ -329,6 +375,14 @@ class CreateKnowledgeGraphs(MultiTask, LLMTask):
 
         try:
             json_kg = json.loads(json_like_kg)
+            assert "nodes" in json_kg
+            assert "edges" in json_kg
+            assert isinstance(json_kg["nodes"], list)
+            assert isinstance(json_kg["edges"], list)
+            assert not json_kg["nodes"][0]["id"].isdigit()
+            assert "source" in json_kg["edges"][0]
+            assert "target" in json_kg["edges"][0]
+
             logging.info(f"Succesfully parsed as JSON={json_kg}")
             return json_kg
         except Exception as e:
@@ -336,16 +390,124 @@ class CreateKnowledgeGraphs(MultiTask, LLMTask):
             return None
 
 
-class CombineKnowledgeGraphs(MultiTask):
+class FixKnowledgeGraphs(CreateKnowledgeGraphs):
+    DEFAULT_SYSTEM_PROMPT = """
+    Given the JSON knowledge graph created from lecture transcripts, make changes to improve the quality.
+    Add neccesary edges between related concept nodes, remove irrelevant nodes & edges which are not useful for the course.
+    """
+
+    DEFAULT_FORMAT_PROMPT = """
+    # Output Format Instructions
+    Produce only JSON output exactly like this: ```json\n{nodes: [{id: <name of concept>, notes: <description of concept>}...], edges: [{source: <id of source concept node>, target: <id of target concept node>, relationship: <type of relationship>}]}\n```
+    # JSON Knowledge Graph
+    """
+
+    DEFAULT_PROMPT = DEFAULT_SYSTEM_PROMPT + DEFAULT_FORMAT_PROMPT
+
+    def __init__(self, prompt=DEFAULT_PROMPT, *args, **kwargs):
+        """
+        Args:
+        - prompt: Prompt used to fix knowledge graph
+        """
+        super().__init__(prompt, *args, **kwargs)
+
+    def process_single(self, single_data):
+        file_path = single_data["file_path"]
+        contributors = single_data["contributors"]
+        contributors["reviewed by"] = self.model
+
+        logging.info(f"Fixing knowledge graph={single_data}")
+
+        prompt = self.prompt.strip() + str(single_data)
+        num_tokens = len(prompt.split(" "))
+        logging.info(f"Creating prompt of length characters={len(prompt)}")
+        logging.info(f"Creating prompt of length tokens={num_tokens}")
+        logging.info(f"Creating prompt={prompt}")
+
+        for _ in range(self.retries + 1):
+            response = self._llm.generate(self.model, prompt)
+            llm_response = response["response"]
+            logging.info(f"Received LLM response={llm_response}")
+
+            json_kg = self._santize_kg(llm_response)
+            if json_kg:
+                break
+
+        if not json_kg:
+            logging.error(
+                f"Failed to create JSON KG after {self.retries} retries")
+            return None
+
+        result = {
+            "file_path": file_path,
+            "contributors": contributors,
+            "nodes": json_kg["nodes"],
+            "edges": json_kg["edges"],
+        }
+        return result
+
+
+class CombineKnowledgeGraphs(MultiTask, LLMTask):
     """
     Combine a list of knowledge graphs into one
     - single_input: [{file_path, nodes, edges}] to combine
     - single_output: {nodes, edges} combined
     """
 
+    def __init__(
+        self,
+        embedding_model="all-minilm",
+        sim_threshold=0.65,
+        *args,
+        **kwargs
+    ) -> None:
+        """
+        Args
+        - embedding_model: model used to convert text into semantic vectors
+        - sim_threshold: Similarity score threshold for grouping nodes
+        """
+        super().__init__("", *args, **kwargs)
+        self.embedding_model = embedding_model
+        self.sim_threshold = sim_threshold
+
+    def _add_node(self, node, kg, file_path):
+        old_node_id: str = node["id"]
+        node_id = old_node_id.lower()
+
+        # Quick check to see if node exists
+        if node_id in kg["nodes"]:
+            kg["nodes"][node_id]["sources"].append(file_path)
+            return node_id
+
+        # Semantic check to see if similar node exists
+        embedding_response = self._llm.embeddings(
+            self.embedding_model, node_id)
+        node_embedding = np.array(embedding_response["embedding"])
+        logging.info(f"Calculated embedding for node={node_id}")
+
+        for other_node_id in kg["nodes"]:
+            other_node = kg["nodes"][other_node_id]
+            other_embedding = other_node["embedding"]
+            similarity = 1 / \
+                (1 + np.linalg.norm(node_embedding - other_embedding))
+
+            if similarity > self.sim_threshold:
+                logging.info(
+                    f"similarity bw {node_id} and {other_node_id}={similarity}")
+                kg["nodes"][node_id]["sources"].append(file_path)
+                return node["id"]
+
+        # Create new node
+        node["id"] = node_id
+        kg["nodes"][node_id] = node
+        kg["nodes"][node_id]["embedding"] = node_embedding
+        kg["nodes"][node_id]["sources"] = [file_path]
+        return node_id
+
     def process_single(self, single_data):
         kg = {
             "file_path": "",
+            "contributors": {},
             "nodes": {},
             "edges": {},
         }
@@ -354,59 +516,35 @@ class CombineKnowledgeGraphs(MultiTask):
         for single_kg in single_data:
             file_path: str = single_kg["file_path"]
             kg["file_path"] = file_path
+            kg["contributors"] = single_kg["contributors"]
 
-            # Add nodes
             for node in single_kg["nodes"]:
-                node_id: str = node["id"]
+                if "id" not in node:
+                    continue
+                old_node_id: str = node["id"]
+                new_node_id = self._add_node(node, kg, file_path)
+                renamed_ids[old_node_id] = new_node_id
 
-                new_node_id = node_id.lower()
-                new_node = {
-                    "id": new_node_id,
-                    "sources": [file_path]
-                }
-
-                if new_node_id in kg["nodes"]:
-                    # Update node sources
-                    kg["nodes"][new_node_id]["sources"].append(file_path)
-                else:
-                    # Create node for first time
-                    kg["nodes"][new_node_id] = new_node
-
-                renamed_ids[node_id] = new_node_id
-
-            # Add edges
             for edge in single_kg["edges"]:
-                source = edge["source"]
-                target = edge["target"]
+                old_node_ids = [edge["source"], edge["target"]]
+                logging.info(f"old node ids ={old_node_ids}")
 
-                if source not in renamed_ids:
-                    new_node_id = source.lower()
-                    kg["nodes"][new_node_id] = {
-                        "id": new_node_id,
-                        "sources": [file_path]
-                    }
-                    logging.warning(
-                        f"Adding new node from edges={new_node_id}")
-                    renamed_ids[source] = new_node_id
+                # attempt to retrieve renamed node ids
+                try:
+                    new_node_ids = list(
+                        map(lambda x: renamed_ids[x], old_node_ids))
+                except KeyError:
+                    logging.warn(f"Missing node ids from edge {old_node_ids}")
+                    continue
 
-                if target not in renamed_ids:
-                    new_node_id = target.lower()
-                    kg["nodes"][new_node_id] = {
-                        "id": new_node_id,
-                        "sources": [file_path]
-                    }
-                    logging.warning(
-                        f"Adding new node from edges={new_node_id}")
-                    renamed_ids[target] = new_node_id
+                logging.info(f"new_node_ids ={new_node_ids}")
+                edge["source"] = new_node_ids[0]
+                edge["target"] = new_node_ids[1]
+                kg["edges"][str(new_node_ids)] = edge
 
-                new_source = renamed_ids[source]
-                new_target = renamed_ids[target]
-                new_edge = {
-                    "source": new_source,
-                    "target": new_target,
-                }
-
-                kg["edges"][source + target] = new_edge
+        # delete embeddings
+        for node_id in kg["nodes"]:
+            del kg["nodes"][node_id]["embedding"]
 
         kg["nodes"] = list(kg["nodes"].values())
         kg["edges"] = list(kg["edges"].values())
@@ -474,6 +612,7 @@ class SaveToDatabase(MultiTask):
 
     def process_single(self, single_data):
         file_path = single_data["file_path"]
+        contributors = single_data["contributors"]
         masked_file_path = file_path[len(self.folder_mask)+1:]
         fp_elements = masked_file_path.split('/')
         project_name = f"{fp_elements[0]} {str(datetime.now())}"
@@ -482,6 +621,7 @@ class SaveToDatabase(MultiTask):
 
         project = {
             "project_name": project_name,
+            "contributors": contributors,
             "nodes": single_data["nodes"],
             "edges": single_data["edges"],
         }
