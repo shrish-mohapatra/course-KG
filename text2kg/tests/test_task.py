@@ -13,6 +13,8 @@ from text2kg.task import (
     SaveToDatabase,
 )
 
+import text2kg.task as t2k
+
 
 @pytest.fixture
 def real_transcript():
@@ -266,6 +268,7 @@ def test_save_to_db():
     result = t.process(input_data)
     assert len(result) != 0
 
+
 def test_get_from_db():
     t = SaveToDatabase(
         mongo_host="localhost",
@@ -279,8 +282,10 @@ def test_get_from_db():
     print(f'projects={projects}')
 
     # Get kg for specifc project name
-    project_comp2406 = collection.find_one({"project_name": "COMP1405-F19 2024-04-04 01:33:45.771794"})
+    project_comp2406 = collection.find_one(
+        {"project_name": "COMP1405-F19 2024-04-04 01:33:45.771794"})
     print(f'project_comp2406={project_comp2406}')
+
 
 def test_similarity():
     node1 = "cold_start_problem"
@@ -290,7 +295,8 @@ def test_similarity():
 
     import numpy as np
     from sentence_transformers import SentenceTransformer
-    embedding_model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+    embedding_model = SentenceTransformer(
+        'sentence-transformers/all-MiniLM-L6-v2')
 
     embeddings = embedding_model.encode([node1, node2, node3])
 
@@ -301,6 +307,7 @@ def test_similarity():
     print(similarity_2)
 
     assert 1 == 2
+
 
 def test_stemming():
     from nltk.stem import PorterStemmer
@@ -314,3 +321,50 @@ def test_stemming():
     stemmed_texts = [stemmer.stem(text) for text in texts]
     print(stemmed_texts)
     assert 1 == 2
+
+
+def test_experiment():
+    print("create experiments")
+    tasks = []
+    FOLDER_PATH = "/opt/course-materials/COMP4601-F23/Lecture Captions"
+    configs = []
+    pre_process_labels = ["none", "summarize"]
+    post_process_labels = ["none", "fix"]
+    for model in ["gemma:2b", "gemma:7b"]:
+        pre_process_configs = [
+            [t2k.GroupByFile()],
+            [
+                t2k.SplitTranscripts(max_tokens=1000),
+                t2k.SummarizeTranscripts(model=model),
+                t2k.GroupByFile(),
+                t2k.SplitSummaries(max_tokens=700),
+            ],
+        ]
+        post_process_configs = [
+            [],
+            [t2k.FixKnowledgeGraphs(model=model)]
+        ]
+
+        for i, pre_process in enumerate(pre_process_configs):
+            for j, post_process in enumerate(post_process_configs):
+                configs.append({
+                    "model": model,
+                    "pre_process": pre_process_labels[i],
+                    "post_process": post_process_labels[j],
+                })
+                exp_tasks = [
+                    t2k.LoadFolder(folder_path=FOLDER_PATH),
+                    t2k.ExtractTranscripts(),
+                ]
+                exp_tasks.extend(pre_process)
+                exp_tasks.append(t2k.CreateKnowledgeGraphs(model=model))
+                exp_tasks.extend(post_process)
+                exp_tasks.extend([
+                    t2k.GroupByFolder(),
+                    t2k.CombineKnowledgeGraphs(),
+                ])
+                tasks.extend(exp_tasks)
+
+    # for task in tasks:
+    #     print(type(task).__name__)
+    print(configs)

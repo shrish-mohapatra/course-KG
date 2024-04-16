@@ -8,4 +8,4 @@ db_client = MongoClient(
 )
 
 db = db_client["course-kg"]
-collection = db["test-kg"]
+collection = db["kg-7b"]
