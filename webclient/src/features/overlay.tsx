@@ -2,6 +2,7 @@ import Controls from "./controls"
 import GraphModeSwitcher from "./graph-mode-switcher"
 import NodeDetails from "./node-details"
 import ProjectSwitcher from "./project-switcher"
+import SaveAlert from "./save-alert"
 import SearchNode from "./search-node"
 
 const Overlay = () => {
@@ -20,6 +21,7 @@ const Overlay = () => {
         <NodeDetails />
       </div>
       <SearchNode/>
+      <SaveAlert/>
     </>
   )
 }

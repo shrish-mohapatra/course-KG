@@ -100,12 +100,6 @@ export const GraphProvider: React.FC<GraphProviderProps> = ({ children }) => {
     getProjects().then((newProjects) => setProjects(newProjects));
   }, []);
 
-  useEffect(() => {
-    if(!editMode && graphData.projectName) {
-      updateKnowledgeGraph(graphData.projectName, graphData)
-    }
-  }, [editMode])
-
   const selectProject = async (projectName: string) => {
     const newKG = await getKnowledgeGraph(projectName);
     const { nodes, edges, contributors, project_name } = newKG;
