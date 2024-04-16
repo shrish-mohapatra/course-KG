@@ -1,5 +1,5 @@
 from db import collection
-from models import KnowledgeGraph
+from models import KnowledgeGraph, KnowledgeGraphUpdate
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -34,3 +34,17 @@ async def get_kg(project_name: str) -> KnowledgeGraph:
         return HTTPException(status_code=404, detail="Project not found")
 
     return result
+
+
+@app.post("/kg")
+async def update_kg(project_name: str, project_data: KnowledgeGraphUpdate):
+    print(f"updating project_name={project_name}")
+    # print(f"project_data={project_data.model_dump()}")
+
+    result = collection.update_one(
+        {"project_name": project_name},
+        {"$set": project_data.model_dump()}
+    )
+    print(result)
+
+    return {"msg": f"updated project={project_name}"}

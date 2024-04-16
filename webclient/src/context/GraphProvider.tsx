@@ -10,34 +10,36 @@ import {
   MutableRefObject,
 } from "react";
 import { ForceGraphMethods, GraphData, NodeObject } from "react-force-graph-2d";
-import { getKnowledgeGraph, getProjects } from "./api";
+import { getKnowledgeGraph, getProjects, updateKnowledgeGraph } from "./api";
 
 const SAMPLE_GRAPH_DATA: GraphData = {
   nodes: [
     {
-      id: "course-kg",
+      id: "COMP 4905",
       group: 0,
-      value: 8,
+      value: 2,
     },
     {
-      id: "developed by",
+      id: "course-kg",
       group: 0,
-      value: 8,
+      value: 2,
     },
     {
       id: "shrish mohapatra",
       group: 0,
-      value: 8,
+      value: 2,
     },
   ],
   links: [
     {
       source: "course-kg",
-      target: "developed by",
+      target: "COMP 4905",
+      relationship: "developed for",
     },
     {
-      source: "developed by",
+      source: "course-kg",
       target: "shrish mohapatra",
+      relationship: "developed by",
     },
   ],
 };
@@ -98,15 +100,21 @@ export const GraphProvider: React.FC<GraphProviderProps> = ({ children }) => {
     getProjects().then((newProjects) => setProjects(newProjects));
   }, []);
 
+  useEffect(() => {
+    if(!editMode && graphData.projectName) {
+      updateKnowledgeGraph(graphData.projectName, graphData)
+    }
+  }, [editMode])
+
   const selectProject = async (projectName: string) => {
     const newKG = await getKnowledgeGraph(projectName);
-    const { nodes, edges, contributors } = newKG;
-    console.log({contributors})
+    const { nodes, edges, contributors, project_name } = newKG;
 
     const node_id_to_index: { [key: number]: number } = {};
 
     for (let i = 0; i < nodes.length; i++) {
       node_id_to_index[nodes[i].id] = i;
+      nodes[i].contributors = contributors
     }
 
     // Assign node value based on # of source edges
@@ -117,10 +125,10 @@ export const GraphProvider: React.FC<GraphProviderProps> = ({ children }) => {
         nodes[node_index].value = 0;
       }
       nodes[node_index].value += 1;
-      nodes[node_index].contributors = contributors;
     }
 
     const newGraphData = {
+      projectName,
       nodes,
       links: edges,
     };

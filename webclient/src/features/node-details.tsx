@@ -30,8 +30,9 @@ const INIT_DRAG_BOUNDS = {
 };
 
 const NodeDetails = () => {
-  const { selectedNode, setSelectedNode } = useContext(GraphContext);
+  const { selectedNode, setSelectedNode, setGraphData } = useContext(GraphContext);
   const [dragBounds, setDragBounds] = useState(INIT_DRAG_BOUNDS);
+  const [notes, setNotes] = useState<string>();
   const modalRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -41,12 +42,34 @@ const NodeDetails = () => {
         bottom: window.innerHeight - modalRef.current.clientHeight,
       });
     }
-    console.log({ selectedNode });
+    if (selectedNode && selectedNode.notes) {
+      setNotes(selectedNode.notes);
+    }
   }, [selectedNode]);
 
   if (!selectedNode || !selectedNode.sources) return;
 
   const handleCollapse = () => {
+    // if (notes != selectedNode.notes) {
+    //   console.log("should update note", notes);
+    //   setGraphData(curData => {
+    //     let { nodes } = curData
+    //     nodes = nodes.map(node => {
+    //       if(node.id == selectedNode.id) {
+    //         return {
+    //           ...node,
+    //           notes,
+    //         }
+    //       }
+    //       return node
+    //     })
+    //     return {
+    //       ...curData,
+    //       nodes
+    //     }
+    //   })
+    // }
+
     setSelectedNode(undefined);
   };
 
@@ -78,7 +101,8 @@ const NodeDetails = () => {
           <p className="text-sm text-zinc-300 text-justify">
             <textarea
               className="w-full h-20 focus:outline-none bg-transparent focus:text-accent resize-none"
-              value={selectedNode.notes}
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
               placeholder="Add some notes to improve concept understanding"
             />
           </p>
@@ -91,14 +115,13 @@ const NodeDetails = () => {
             ))}
           </div>
           <div className="font-mono text-xs text-zinc-500 pt-4">
-            {
+            {selectedNode.contributors &&
               Object.entries(selectedNode.contributors).map(([key, value]) => (
                 <div className="flex justify-between">
                   <p>{key}</p>
                   <p>{value}</p>
                 </div>
-              ))
-            }
+              ))}
           </div>
         </div>
       </div>

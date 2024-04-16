@@ -16,6 +16,12 @@ class Edge(BaseModel):
 
 class KnowledgeGraph(BaseModel):
     project_name: str = Field(description="Name of project KG was created for")
-    contributors: dict = Field(description="Contributors involved in KG generation")
+    contributors: dict = Field(
+        description="Contributors involved in KG generation")
+    nodes: List[Node]
+    edges: List[Edge]
+
+
+class KnowledgeGraphUpdate(BaseModel):
     nodes: List[Node]
     edges: List[Edge]

@@ -7,8 +7,8 @@ import logging
 import json
 import os
 import pandas as pd
-import numpy as np
 from nltk.stem import PorterStemmer
+from fuzzywuzzy import fuzz
 
 
 class LoadFolder(Task):
@@ -459,13 +459,15 @@ class CombineKnowledgeGraphs(MultiTask):
     - single_output: {nodes, edges} combined
     """
 
-    def __init__(self, stemmer=PorterStemmer()) -> None:
+    def __init__(self, stemmer=PorterStemmer(), sim_threshold=80) -> None:
         """
         Args
         - stemmer: Used to group similar nodes together
+        - sim_threshold: Score between 0-100 for fuzzy similarity checks
         """
         super().__init__()
         self.stemmer = stemmer
+        self.sim_threshold = sim_threshold
 
     def _get_stem(self, text: str):
         text = text.replace('-', '')
@@ -484,7 +486,7 @@ class CombineKnowledgeGraphs(MultiTask):
         # Check stems
         for other_node_id in kg["nodes"]:
             other_stem = self._get_stem(other_node_id)
-            if other_stem == node_id_stem:
+            if other_stem == node_id_stem or fuzz.ratio(other_stem, node_id_stem) >= self.sim_threshold:
                 logging.info(f"Combining nodes {node_id} and {other_node_id}")
                 kg["nodes"][other_node_id]["sources"].append(file_path)
                 return other_node_id
@@ -549,7 +551,7 @@ class CombineKnowledgeGraphs(MultiTask):
         logging.info(f"METRICS: num_nodes={num_nodes}")
         logging.info(f"METRICS: num_edges={num_edges}")
         logging.info(f"METRICS: avg_node_degree={node_degree/num_nodes}")
-
+        
         return kg
 
 

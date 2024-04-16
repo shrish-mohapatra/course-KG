@@ -29,8 +29,9 @@ const Graph = () => {
     if (sourceNode != "") {
       console.log("create edge from", sourceNode, node.id);
       setGraphData((curData) => ({
+        ...curData,
         nodes: curData.nodes,
-        links: [...curData.links, { source: sourceNode, target: node.id }],
+        links: [...curData.links, { source: sourceNode, target: node.id, relationship: "related to" }],
       }));
       setSourceNode("");
     } else {
@@ -52,6 +53,7 @@ const Graph = () => {
         newNodes.splice(node.index, 1);
 
         return {
+          ...curData,
           nodes: newNodes,
           links: newLinks,
         };
@@ -68,6 +70,7 @@ const Graph = () => {
       const newLinks = [...curData.links];
       newLinks.splice(link.index, 1);
       return {
+        ...curData,
         nodes: curData.nodes,
         links: newLinks,
       };

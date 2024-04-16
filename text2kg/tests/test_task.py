@@ -368,3 +368,23 @@ def test_experiment():
     # for task in tasks:
     #     print(type(task).__name__)
     print(configs)
+
+
+def test_fuzzy():
+    from fuzzywuzzy import fuzz
+
+    def add_text(text):
+        for other_text in texts:
+            sim = fuzz.ratio(text.lower(), other_text.lower())
+            if sim >= 80:
+                grouped_texts.add(other_text)
+                return
+        
+        grouped_texts.add(text)
+
+    grouped_texts = set()
+    texts = ["Restful Design", "Restful API design", "RESTApi", "RESTApiNamingConventions"]
+    for text in texts:
+        add_text(text)
+    
+    print(grouped_texts)

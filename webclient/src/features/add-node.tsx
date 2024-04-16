@@ -12,11 +12,13 @@ const AddNode = () => {
     setGraphData((curData) => {
       console.log(curData);
       return {
+        ...curData,
         nodes: [
           ...curData.nodes,
           {
             id: nodeName,
             value: 1,
+            sources: [],
           },
         ],
         links: curData.links,

@@ -25,7 +25,7 @@ const SearchNode = () => {
 
   const selectNode = (nodeId: string) => {
     console.log("selected", nodeId)
-    graphRef?.current.zoomToFit(400, 300, (node) => node.id == nodeId)
+    graphRef?.current.zoomToFit(400, 20, (node) => node.id == nodeId)
     setOpen(false)
   }
 

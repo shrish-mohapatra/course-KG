@@ -30,7 +30,7 @@ pipeline = Pipeline(
         FixKnowledgeGraphs(model="gemma:7b"),
         GroupByFolder(),
         CombineKnowledgeGraphs(),
-        SaveToDatabase(collection_name="kg-7b"),
+        SaveToDatabase(collection_name="kg-7b-final"),
     ],
     pipeline_engine=AirflowEngine(
         dag_name="textkg-gemma-7b",
