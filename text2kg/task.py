@@ -327,11 +327,15 @@ class CreateKnowledgeGraphs(MultiTask, LLMTask):
 
     def process_single(self, single_data):
         file_path = single_data[0]["file_path"]
-        contributors = single_data[0]["contributors"]
+        summary_key = "transcript"
+        contributors = {}
+        if "contributors" in single_data[0]:
+            contributors = single_data[0]["contributors"]
+            summary_key = "summary"
         contributors["KGs created by"] = self.model
 
         logging.info(f"Creating KG on {len(single_data)} summaries")
-        joint_summaries = list(map(lambda x: x["summary"], single_data))
+        joint_summaries = list(map(lambda x: x[summary_key], single_data))
         joint_summaries_text = "\n".join(joint_summaries)
 
         prompt = self.prompt.strip() + joint_summaries_text
@@ -462,7 +466,7 @@ class CombineKnowledgeGraphs(MultiTask):
         """
         super().__init__()
         self.stemmer = stemmer
-    
+
     def _get_stem(self, text: str):
         text = text.replace('-', '')
         text = text.replace('_', '')
@@ -529,12 +533,12 @@ class CombineKnowledgeGraphs(MultiTask):
                 edge["target"] = new_node_ids[1]
                 kg["edges"][str(new_node_ids)] = edge
 
-        # Count nodes with no edges
-        # for node in kg["nodes"]:
-        #     edges = list(kg["edges"].keys())
-        #     edges_f = list(filter(lambda x: node in x, edges))
-        #     if not edges_f:
-        #         logging.info(node)
+        # Calculate avg node degree (incoming + outcoming)
+        node_degree = 0
+        for node in kg["nodes"]:
+            edges = list(kg["edges"].keys())
+            edges_f = list(filter(lambda x: node in x, edges))
+            node_degree += len(edges_f)
 
         kg["nodes"] = list(kg["nodes"].values())
         kg["edges"] = list(kg["edges"].values())
@@ -542,8 +546,9 @@ class CombineKnowledgeGraphs(MultiTask):
         num_nodes = len(kg["nodes"])
         num_edges = len(kg["edges"])
 
-        logging.info(f"Created {num_nodes} nodes")
-        logging.info(f"Created {num_edges} edges")
+        logging.info(f"METRICS: num_nodes={num_nodes}")
+        logging.info(f"METRICS: num_edges={num_edges}")
+        logging.info(f"METRICS: avg_node_degree={node_degree/num_nodes}")
 
         return kg
 

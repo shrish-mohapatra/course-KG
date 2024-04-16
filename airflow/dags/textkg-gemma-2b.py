@@ -35,7 +35,7 @@ pipeline = Pipeline(
     pipeline_engine=AirflowEngine(
         dag_name="textkg-gemma-2b",
         description="using gemma2b with all transformations",
-        tags=["testing"],
+        tags=["manual-testing", "gemma2b"],
         dag_args={
             'owner': 'shrish',
             'depends_on_past': False,
