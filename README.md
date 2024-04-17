@@ -1,6 +1,12 @@
 # course-KG
 > generating knowledge graphs from course material
 
+## Usage
+After completing the installation steps and running the stack, navigate to http://localhost:3000/ to access the webclient.
+Select a project and start interacting with the LLM-generated knowledge graphs!
+
+Instructions regarding the application features can be found in the [Final Report](docs/Shrish_Honors_Project_Final_Report.pdf).
+
 ## Installation
 Install Docker engine. This should include `docker compose`.
 
