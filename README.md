@@ -1,6 +1,11 @@
 # course-KG
 > generating knowledge graphs from course material
 
+![cover-page](https://github.com/shrish-mohapatra/course-KG/assets/51547897/d2cd40b5-70f7-4978-bb56-c1edb8bbe29d)
+
+## Abstract
+Traditional methods of delivering course materials through linear lectures can hinder students' understanding of advanced topics by failing to connect concepts across different lectures. Course-KG offers an automated system that organizes lecture transcripts into a knowledge graph, capturing the semantic relationships between concepts using LLMs.
+
 ## Usage
 After completing the installation steps and running the stack, navigate to http://localhost:3000/ to access the webclient.
 Select a project and start interacting with the LLM-generated knowledge graphs!
